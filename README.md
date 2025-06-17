@@ -65,5 +65,5 @@ This project is part of a personal initiative to build a complete productivity d
 ## 👩‍💻 Author  
 
 *Raeedah Musa*  
-🔗 [LinkedIn](https://www.linkedin.com/in/raeedah-musa)  
+🔗 [LinkedIn](https://www.linkedin.com/in/raeedahmusa)  
 🔗 [GitHub](https://github.com/yourusername)
