@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="./output.css" />
+</head>
+<body class="min-h-screen max-w-screen bg-gray-100">
+        <!-- HEADER -->
+   <header class="dashboard-header">
+   <h1 class="text-3xl font-bold font-sans">🧠Task Manager</h1>
+    </header>
+   <main class="task-dashboard">
+   <div class="flex flex-row justify-end text-gray-800">
+
+                <!-- FLOATING ACTION BUTTON -->
+        <div id="modalContainer" class="relative mr-2.5">
+          <button id="fabButton" class="hover:cursor-pointer" aria-label="Menu Button" title="Menu Button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </button>
+                    <!--TASK MODAL -->
+            <div id="taskAction" class="hidden absolute right-5 w-35 border rounded border-gray-600 shadow-2xl p-3 bg-gray-200">
+            <div class="flex flex-row" id="modalContent">
+                <span id="addButton" class="hover:scale-110 hover:cursor-pointer hover:bg-white p-2 rounded-md flex items-center w-10 h-10" aria-label="Add New Task" title="Add New Task">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                </span>
+                <span id="deleteButton" class="hover:scale-110  hover:cursor-pointer hover:bg-white p-2 rounded-md flex items-center w-10 h-10" aria-label="Delete task" title="Delete task">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                </span>
+                <span id="editButton" class="hover:scale-110 hover:cursor-pointer hover:bg-white p-2 rounded-md flex items-center w-10 h-10" aria-label="Edit task" title="Edit task">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                </span>
+            </div>
+            </div>
+        </div>
+   </div>
+   </div>
+  
+      <h3 class="text-center font-semibold text-2xl -mt-2 font-serif">ALL TASKS</h3>
+
+    <!-- TODAY'S TASKS -->
+    <section id="today-tasks" class=" bg-gray-50 rounded-lg mb-3 mt-3 shadow-lg p-4 hover:cursor-pointer">
+      <h2 class="text-2xl font-medium">Today</h2>
+      <ul class="" id="today-list">
+      </ul>
+    </section>
+
+    <section id="tomorrow-tasks" class="bg-gray-50 mb-3 rounded-lg shadow-lg p-4 hover:cursor-pointer">
+      <h2 class="text-2xl font-medium">Tomorrow</h2>
+      <ul class="" id="tomorrow-list">
+      </ul>
+    </section>
+
+    <!-- UPCOMING TASKS -->
+    <section id="upcoming-tasks" class="bg-gray-50 mb-3 rounded-lg shadow-lg p-4 hover:cursor-pointer">
+      <h2 class="text-2xl font-medium">Upcoming</h2>
+      <ul class="" id="upcoming-list">
+        <!-- Tasks added dynamically -->
+      </ul>
+    </section>
+
+    <!-- COMPLETED TASKS -->
+    <section id="completed-tasks" class="bg-gray-100 mb-2 rounded-lg shadow-lg p-4 hover:cursor-pointer">
+      <h2 class="text-2xl font-medium">Completed</h2>
+      <ul class="task-list" id="completed-list">
+        <!-- Completed tasks added dynamically -->
+      </ul>
+    </section>
+
+    <!--ADD TASKS-->
+      <div id="bottomSheet" class="flex items-center justify-center backdrop:blur-sm hidden">
+      <form id="taskForm" class="bottom-0 left-0 right-0 flex flex-row  bg-gray-200  gap-2 p-6 rounded-t-lg shadow-lg transition-transform translate-y-full duration-300 rounded-sm">
+      <input type="text" id="task-title" class="hover:cursor-pointer outline-gray-600 border-gray-600 border rounded-sm p-1" placeholder="Task title" required />
+      <input type="date" id="task-date" class="hover:cursor-pointer  outline-gray-600 border-gray-600 border rounded-sm p-1 " required />
+      <label class="hover:cursor-pointer outline-gray-700 border-gray-600 border rounded-sm p-1 ">
+          <input name="checkbox" type="checkbox" class="hover:cursor-pointer accent-gray-500" id="task-priority" />
+          High Priority
+      </label>
+      <div id="modalActions" class="flex flex-row gap-2">
+          <button type="submit" class="hover:bg-gray-400 hover:cursor-pointer bg-gray-800 text-white px-2 rounded-sm">Add Task</button>
+          <button type="button" id="cancelButton" class="hover:bg-gray-400 hover:cursor-pointer bg-gray-800 text-white px-2 rounded-sm"id="close-modal">Cancel</button>
+      </div>
+      </form>
+   
+  </main>
+  <script>
+   //----------------------------------------------------------DOM ELEMENT-------------------------------------------------------//
+   window.addEventListener("DOMContentLoaded", () => {
+    const floatingActionButton = document.getElementById('fabButton');
+    const taskAction = document.getElementById('taskAction');
+    const addButton = document.getElementById('addButton');
+    const bottomSheet = document.getElementById('bottomSheet');
+    const taskForm = document.getElementById('taskForm');
+    const taskTitle = taskForm['task-title'];
+    const taskDate = taskForm['task-date'];
+    const cancelButton = document.getElementById('cancelButton');
+    const deleteButton = document.getElementById('deleteButton');
+    const editButton = document.getElementById('editButton');
+    const markDoneButton = document.getElementById('markDoneButton');
+    const todayList = document.getElementById('today-list');
+    const tomorrowList = document.getElementById('tomorrow-list');
+    const upcomingList = document.getElementById('upcoming-list');
+    const completedList = document.getElementById('completed-list');
+    // Declare task arrays outside to reuse and update in localStorage
+    let todayTasks = [];
+    let tomorrowTasks = [];
+    let upcomingTasks = [];
+    let completedTasks = [];
+    let selectedTaskElement = null;  // stores the <li> of the clicked task
+    let selectedTaskData = null;     // stores the task object (title, date, etc.)
+    let draggedElement = null;
+    //-------------------------------------FUNCTION TO MOVE/DRAG IN EVERY CATEGORY-------------------------------------------------//
+    ///This allows it to drop after dragging created in create element
+    //Let the task be dropped here
+    function enableDragAndDrop(listElement, taskArray) {
+      //catching any list it is floating over
+      listElement.addEventListener('dragover', (event) => { //'dragover' listen for a dragover event and catch the event
+        event.preventDefault(); //Yes I am allowed to drop it here 
+      });
+      //What happens when the task is dropped
+      listElement.addEventListener('drop', (event) => { //listen for drops now....when a task is dropped, run this code
+        event.preventDefault(); //don't do what the browser would normally do --> e.g block the drop, open file e.t.c
+        const droppedTask = JSON.parse(event.dataTransfer.getData('text/plain')); //parsing the data I stringified when dragging 
+        //Remove old copy from the old element manually
+        const listItems = listElement.querySelectorAll('li');
+        listItems.forEach(li => {
+          const span = li.querySelector('span'); //select the first span element and check
+          //if the title matches the dropped task
+          if (span && span.title === droppedTask.title) {
+            li.remove() //Remove it from the DOM..that is the screen
+          }
+        });
+        //Remove old copy from the array
+        //Saves the position of the index
+        const index = taskArray.findIndex(task => task.title === droppedTask.title && task.date === droppedTask.tomorrowDate);
+        //if the index is out of range or not found it will be -1
+        if(index !== -1) {//if the index is found
+          task.splice(index, 1); //cuts out 1 task at the index position
+        }
+
+        //Add the dropped task to the end of the array and the list
+        taskArray.push(droppedTask);
+
+        listElement.appendChild(draggedElement);
+        draggedElement = null;
+        //Save
+        updateTasksInLocalStorage();
+      });
+    }
+    
+    enableDragAndDrop(todayList, todayTasks);
+    enableDragAndDrop(tomorrowList, tomorrowTasks);
+    enableDragAndDrop(upcomingList, upcomingTasks);
+    enableDragAndDrop(completedList, completedTasks);
+
+    
+    //-----------------------------------------FLOATING ACTION BUTTON FUNCTIONALITY------------------------------------------------//
+    // When FAB button is clicked - toggle dropdown and prevent event bubbling
+    floatingActionButton.addEventListener('click', (event) => {
+      // Stop event from bubbling up to document to prevent immediate closing
+      event.stopPropagation(); // Prevent immediate closing
+
+      // Toggle the dropdown visibility
+      taskAction.classList.toggle('hidden');
+      floatingActionButton.classList.toggle('scale-110');//makes the button 10x larger
+
+      //Toggle svg color
+      const svg = floatingActionButton.querySelector('svg');
+      if (svg) {
+        svg.classList.toggle('text-gray-500');  // Toggle color
+      }
+    });
+
+    // Close dropdown when clicking outside of it
+    document.addEventListener('click', (event) => {
+      const clickedOnFab = floatingActionButton.contains(event.target);
+      const clickedInDropdown = taskAction.contains(event.target);
+
+      if (!clickedOnFab && !clickedInDropdown) {
+        taskAction.classList.add('hidden');
+      }
+    });
+
+    //-----------------------------------------------WHEN ADD BUTTON IS CLICKED-------------------------------------------------------//
+    addButton.addEventListener('click', () => {
+      taskAction.classList.add('hidden');
+      bottomSheet.classList.toggle('hidden'); //Show the adding block/taskform
+    });
+    
+    //-----------------------------------------------WHEN CANCEL BUTTON IS CLICKED-------------------------------------------------------//
+    cancelButton.addEventListener('click', () => {
+      bottomSheet.classList.add('hidden');
+    });
+    // -------------------------------------------- CREATE TASK ELEMENT FUNCTION -----------------------------------------------//
+    function createTaskElement(task, targetList) {
+      const taskElement = document.createElement('li');
+      const wrapper = document.createElement('div'); // wraps the checkbox + text
+      wrapper.classList.add('flex', 'items-center', 'gap-2');
+      const priorityLabel = document.createElement('span');
+      
+      //To enable movement of each task manually by dragging --> It is saying: Hey task! You’re allowed to be picked up
+      taskElement.setAttribute("draggable", true);//enables task element to be draggable by the browser
+      taskElement.addEventListener('dragstart', (event) => {
+        draggedElement = taskElement;
+        event.dataTransfer.setData('text/plain', JSON.stringify(task));
+        event.dataTransfer.effectAllowed = 'move';
+      });
+      // Real Hidden Checkbox
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.classList.add('hidden');
+      checkbox.checked = task.done || false; // Keep state from localStorage
+
+      // Creating SVG Checkbox UI here
+      const customCheckbox = document.createElement('span');
+      customCheckbox.innerHTML = checkbox.checked //if checked is true, display the filled circle
+        ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="#D1D5DB" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="12" fill="#D1D5DB"/>
+            <path d="M16.5 9L10.5 15L7.5 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`
+        : `<div class="w-6 h-6 rounded-full border-2 border-gray-400"></div>`;
+
+      // Task Text
+      const taskText = document.createElement('span');
+      taskText.textContent = task.title;
+      taskText.setAttribute('title', task.title);
+      taskText.classList.add('task-title','ml-1');
+
+      //If the task is of high priority
+      if(task.priority) {
+        priorityLabel.textContent = "High Priority";
+        priorityLabel.classList.add('bg-red-500', 'text-white', 'text-xs', 'px-2', 'py-1', 'rounded-full','ml-10','flex-end');
+      }
+
+      //Apply visual styling immediately page loads if task is already done then
+      if (task.done) {
+        taskText.classList.add('line-through', 'text-gray-400', 'italic');
+      }
+
+      // Toggle Logic: Click on checkbox icon
+      customCheckbox.addEventListener('click', () => {
+        checkbox.checked = !checkbox.checked; //flips the checked status
+        task.done = checkbox.checked; //updates the task.done with that boolean
+
+        // Update icon/checkbox
+        customCheckbox.innerHTML = checkbox.checked //is it checked, if it is
+          ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="#D1D5DB" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="12" fill="#D1D5DB"/>
+              <path d="M16.5 9L10.5 15L7.5 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`
+          : `<div class="w-6 h-6 rounded-full border-2 border-gray-400"></div>`;
+
+        // Remove it from wherever it is first
+        taskElement.remove();
+        if (task.done) { //if true
+          //Add strikethrough //Make the text-gray 
+          taskText.classList.add('line-through','text-gray-400', 'italic');
+          completedList.appendChild(taskElement);
+          completedTasks.push(task);
+
+          //Remove that task from any of the tasks array it is in
+          //.filter goes through all the items in the array and keeps only the item that returns true for the condition stated,
+          //but we flipped it, so it will keep only the item that does not match
+          todayTasks = todayTasks.filter(currentTask => !(currentTask.title === task.title && currentTask.date === task.date));
+          tomorrowTasks = tomorrowTasks.filter(currentTask => !(currentTask.title === task.title && currentTask.date === task.date));
+          upcomingTasks = upcomingTasks.filter(currentTask => !(currentTask.title === task.title && currentTask.date === task.date));
+          //I used .filter because it returns array
+        } else {
+          //Remove strikethrough  //Remove the gray-text 
+          taskText.classList.remove('line-through','text-gray-500', 'italic');
+          
+          //Remove from completed Tasks
+          completedTasks = completedTasks.filter(currentTask => !(currentTask.title === task.title && currentTask.date === task.date));
+          
+          const taskDate = new Date(task.date);
+          const today = new Date();
+          const tomorrow = new Date();
+          tomorrow.setDate(today.getDate() + 1);
+          
+          //Reset all times (hour/min/sec) to midnight (00:00).
+          const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+          const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const tomorrowOnly = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+
+          if (taskDay.getTime() === todayOnly.getTime()) {
+            todayList.appendChild(taskElement);
+            todayTasks.push(task);
+          } else if (taskDay.getTime() === tomorrowOnly.getTime()) {
+            tomorrowList.appendChild(taskElement);
+            tomorrowTasks.push(task);
+          } else {
+            upcomingList.appendChild(taskElement);
+            upcomingTasks.push(task);
+          }
+        }
+
+        updateTasksInLocalStorage();
+      });
+
+      // Combine elements
+      wrapper.appendChild(checkbox); //appending checkbox to the div, but it is hidden by default
+      wrapper.appendChild(customCheckbox); //appending custom checkbox
+      wrapper.appendChild(taskText); //append title to the title
+      wrapper.appendChild(priorityLabel);
+      taskElement.appendChild(wrapper); //add this to the task element...that is the list
+      taskElement.classList.add('mt-2'); //Add margin to the top
+      
+      //---------------------------------------------FUNCTION TO UPDATE TASK SELECTION LOGIC--------------------------------------------//
+      taskElement.addEventListener('click', () => {
+        //Find all tasks with the class 'selected-task'
+        const allTasks = document.querySelectorAll('li.selected-task'); //It's just a marker class we use in
+        //Loop through and remove selection style from all of them
+        allTasks.forEach(task => {
+          task.classList.remove('selected-task', 'bg-green-100', 'border', 'rounded-md', 'border-green-500');
+        });
+        //Add classes to this clicked task to mark it as selected
+        taskElement.classList.add('selected-task', 'bg-green-100', 'border', 'rounded-md', 'border-green-500');
+
+        // this is to store the selected task element globally
+        selectedTaskElement = taskElement;
+
+        // this is to store the actual task data (title, date, etc.)
+        selectedTaskData = task;
+      });
+      targetList.appendChild(taskElement); // Add the task to the section in the UI
+    }
+    //-------------------------------------FUNCTION TO UPDATE TASK IN LOCAL STORAGE----------------------------------------------------//
+    function updateTasksInLocalStorage() {
+      // 4. Save updated arrays to localStorage
+      localStorage.setItem("todayTasks", JSON.stringify(todayTasks));
+      localStorage.setItem("tomorrowTasks", JSON.stringify(tomorrowTasks));
+      localStorage.setItem("upcomingTasks", JSON.stringify(upcomingTasks));
+      localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+    }
+    //--------------------------------------ADD TASK TO STORAGE AND DISPLAY--------------------------------------------------//
+
+    taskForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      bottomSheet.classList.add('hidden');
+
+      const taskTitleInput = taskTitle.value;
+      const taskDateInput = taskDate.value;
+      const isChecked = taskForm.elements.checkbox.checked; //returns true or false
+
+      if (taskTitleInput && taskDateInput) {
+        const taskDateObj = new Date(taskDateInput);
+        const taskDateOnly = new Date(taskDateObj.getFullYear(), taskDateObj.getMonth(), taskDateObj.getDate());
+
+        const today = new Date();
+        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const tomorrowDate = new Date(todayDate);
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1); // adds 1 day
+
+        //-----------------------------------------------TASK OBJECT CREATED--------------------------------------//
+        //Task object to be added to local storage representing a single task
+        const task = {
+          title: taskTitleInput,
+          date: taskDateInput,
+          done: false, // Whether the task is completed
+          priority: isChecked // reflects the checkbox state
+        };
+
+        if (taskDateOnly.getTime() === todayDate.getTime()) {
+          createTaskElement(task, todayList); // display today lists
+          todayTasks.push(task); // save to the todaytasks array
+          localStorage.setItem("todayTasks", JSON.stringify(todayTasks));
+        } else if (taskDateOnly.getTime() === tomorrowDate.getTime()) {
+          createTaskElement(task, tomorrowList);
+          tomorrowTasks.push(task);
+          localStorage.setItem("tomorrowTasks", JSON.stringify(tomorrowTasks));
+        } else if (taskDateOnly.getTime() > tomorrowDate.getTime()) {
+          createTaskElement(task, upcomingList);
+          upcomingTasks.push(task);
+          localStorage.setItem("upcomingTasks", JSON.stringify(upcomingTasks));
+        }
+
+        // Clear input fields after adding
+        taskTitle.value = '';
+        taskDate.value = '';
+        taskForm.elements.checkbox.checked = false;
+      }
+    });
+    
+    //-------------------------------------------------------DELETE BUTTON-----------------------------------------//
+    deleteButton.addEventListener('click', () => {
+      if (!selectedTaskElement || !selectedTaskData) {
+        alert("Please select a task to delete.");
+        return;
+      }
+      //Remove from wherever it is 
+      selectedTaskElement.remove();
+
+      //Remove from the correct array
+      const title = selectedTaskData.title;
+      const date = selectedTaskData.date;
+
+      // Filter it out of every array it might be in
+      todayTasks = todayTasks.filter(task => !(task.title === title && task.date === date));
+      tomorrowTasks = tomorrowTasks.filter(task => !(task.title === title && task.date === date));
+      upcomingTasks = upcomingTasks.filter(task => !(task.title === title && task.date === date));
+      completedTasks = completedTasks.filter(task => !(task.title === title && task.date === date));
+
+      //Update Storage
+      updateTasksInLocalStorage();
+
+      //clear selected task
+      selectedTaskElement = null;
+      selectedTaskData = null;
+    });
+    //-----------------------------------------------------EDIT TASKS BUTTON-------------------------------------------------------//
+    editButton.addEventListener('click', () => {
+      if (!selectedTaskData || !selectedTaskElement) {
+        alert("Please select a task to edit.");
+        return;
+      }
+      //Show the form if task selected.
+      bottomSheet.classList.remove('hidden');
+      // Fill form with task data all over again
+      taskTitle.value = selectedTaskData.title;
+      taskDate.value = selectedTaskData.date;
+      taskForm.elements.checkbox.checked = selectedTaskData.priority;
+
+      // Remove the original task visually and from array for now
+      selectedTaskElement.remove();
+      todayTasks = todayTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
+      tomorrowTasks = tomorrowTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
+      upcomingTasks = upcomingTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
+      completedTasks = completedTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
+
+      updateTasksInLocalStorage();
+
+      // Clear selected state
+      selectedTaskElement = null;
+      selectedTaskData = null;
+    });
+    // ----------------------------------------------- LOAD TASKS FROM STORAGE ---------------------------------------------------//
+    function loadTasksFromStorage() {
+      try {
+        todayTasks = JSON.parse(localStorage.getItem("todayTasks")) || [];
+        tomorrowTasks = JSON.parse(localStorage.getItem("tomorrowTasks")) || [];
+        upcomingTasks = JSON.parse(localStorage.getItem("upcomingTasks")) || [];
+        completedTasks = JSON.parse(localStorage.getItem("completedTasks")) || [];
+        //To sort high priority tasks before displaying
+        todayTasks.sort((a, b) => {
+          //If task a is marked high-priority (true) and task b isn’t, put a first.
+          if (a.priority === true && b.priority !== true) return -1;
+          //If task a isn’t high-priority, but b is, put b first.
+          if (a.priority !== true && b.priority === true) return 1;
+          return 0;
+        });
+        tomorrowTasks.sort((a, b) => {
+          //Sort by priority
+          if (a.priority === true && b.priority !== true) return -1;
+          if (a.priority !== true && b.priority === true) return 1;
+          return 0;
+        });
+        upcomingTasks.sort((a, b) => {
+          if (a.priority === true && b.priority !== true) return -1;
+          if (a.priority !== true && b.priority === true) return 1;
+          return 0;
+        });
+        // Display all saved tasks
+        todayTasks.forEach(task => createTaskElement(task, todayList));
+        tomorrowTasks.forEach(task => createTaskElement(task, tomorrowList));
+        upcomingTasks.forEach(task => createTaskElement(task, upcomingList));
+        completedTasks.forEach(task => createTaskElement(task, completedList));
+      } catch {
+        todayTasks = [];
+        tomorrowTasks = [];
+        upcomingTasks = [];
+        completedTasks = [];
+      }
+    }
+
+    //-----------------------------------------Load tasks after dom content loaded--------------------------------------------------//
+    
+    loadTasksFromStorage(); // This loads saved tasks when page opens
+    updateTasksInLocalStorage();
+  });
+
+      
+
+  </script>
+</body>
+</html>
