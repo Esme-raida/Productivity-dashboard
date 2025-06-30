@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer</title>
+    <link href="./output.css" rel="stylesheet">
+</head>
+<body class="scroll-smooth max-w-screen min-h-screen flex flex-col bg-gray-100">
+    <div id="mainTimerPage">
+            <!-- HEADER SECTION -->
+        <div class="flex justify-between items-center p-6">
+            
+            <span id="backBtn"  class="text-gray-600 hover:cursor-pointer hover:scale-110 hover:text-black" aria-label="Back" title="Back">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </span>
+            <div class="text-4xl font-semibold text-gray-800">Timer⏲</div>
+            <div id="settingIcon" class="hover:cursor-pointer hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 transition-transform duration-200 hover:scale-110">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- TIMER SECTION -->
+        <div class="mt-4 py-6 flex flex-col items-center justify-center px-10">
+            <div class="relative w-72 h-72">
+                <svg id="timer-ticks" class="absolute inset-0 w-80 h-80 -translate-x-4 -translate-y-4 z-0 pointer-events-none" viewBox="0 0 400 400"></svg>
+                <div id="timer-circle" class="relative flex flex-col justify-center items-center w-72 h-72 rounded-full border-2 border-gray-500 border-dashed bg-gray-300 font-bold z-10">
+                    <span id="timeCount" class="text-5xl text-gray-800">9:41</span>
+                    <span id="sessionType" class="text-3xl pb-3 font-semibold text-gray-600">Focus</span>
+                    <span id="sessionCount" class="font-medium text-gray-600">Pomodoro 1 of 4</span>
+                </div>
+            </div>
+            
+            <div class="flex flex-row items-center justify-center gap-6 mt-12">
+                <button id="resetBtn" class="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-200 cursor-pointer transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 group-hover:scale-110 transition-transform">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    <span>Reset</span>
+                </button>
+                <button id="startBtn" class="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-200 cursor-pointer transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 group-hover:scale-110 transition-transform">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                    </svg>
+                    <span>Start</span>
+                </button>
+                <button id="pauseBtn" class="hidden flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-300 cursor-pointer transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 group-hover:scale-110 transition-transform">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                    </svg>
+                    <span>Pause</span>
+                </button>
+                <button class="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-200 cursor-pointer transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-6 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span id="addTaskBtn">Add Task</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS SECTION -->
+    <section id="settingsSection" class="hidden inset-0 bg-black/40 backdrop-blur-sm z-50 p-6 overflow-y-auto">
+        <div id="headerDiv" class="mb-6 text-center">
+            <h1 id="settingsHeader" class="text-3xl font-bold flex items-center justify-center">Settings</h1>
+        </div>
+        <div id="closeBtn" class ="flex justify-end text-black hover:cursor-pointer transition-transform duration-300 ease-in-out">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+        </div>
+        <div id="settingsButtons" class="p-4 pt-0 space-y-6">
+            <!-- Duration Settings -->
+            <div id="settingsBtn">
+                <div id="btn-title" class="font-semibold text-lg">Duration Settings</div>
+                <div id="settingsContent " class="p-4">
+                    <div id="durationInfo" class="space-y-4">
+                        <!--FOCUS SESSION BLOCK-->
+                        <div id="session" class="flex justify-between items-center">
+                            <div id="durationTitle">Focus Session</div>
+                            <div id="timeControls" class="flex items-center space-x-3">
+                                <div id="controlBttons" class="flex space-x-2">
+                                    <svg id="focusDecrementBtn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-600 border border-dotted bg-gray-100 hover:bg-gray-300 hover:scale-110 hover:text-gray-800 cursor-pointer decrement-button">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                    </svg>
+                                    <svg id="focusIncrementBtn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-600 border border-dotted bg-gray-100 hover:bg-gray-300 hover:scale-110 hover:text-gray-800 cursor-pointer increment-button">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                </div>
+                                <span id="focusTime" class="text-gray-800">25</span>
+                            </div>
+                        </div>
+                        <!--SHORT BREAK SESSION TIME-->
+                        <div id="session" class="flex justify-between items-center">
+                            <div id="durationTitle">Short Break</div>
+                            <div id="timeControls" class="flex items-center space-x-3">
+                                <div id="controlButtons" class="flex space-x-2">
+                                    <svg id="shortBreakDecrementBtn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 border border-dotted bg-gray-100 hover:bg-gray-300 hover:scale-110 text-gray-600 hover:text-gray-800 cursor-pointer decrement-button">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                    </svg>
+                                    <svg id="shortBreakIncrementBtn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 border border-dotted bg-gray-100 hover:bg-gray-300 hover:scale-110 text-gray-600 hover:text-gray-800 cursor-pointer increment-button">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                </div>
+                                <span id="shortBreakTime" class="text-gray-800 mr-2">5</span>
+                            </div>
+                        </div>
+                        <!--LONG BREAK SESSION TIME-->
+                        <div id="session" class="flex justify-between items-center">
+                            <div id="durationTitle" class="">Long Break</div>
+                            <div id="timeControls" class="flex items-center space-x-3">
+                                <div id="controlButtons" class="flex space-x-2">
+                                    <svg id="longBreakDecrementBtn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 border border-dotted bg-gray-100 hover:bg-gray-300 hover:scale-110 text-gray-600 hover:text-gray-800 cursor-pointer decrement-button">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                    </svg>
+                                    <svg id="longBreakIncrementBtn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 border border-dotted bg-gray-100 hover:bg-gray-300 hover:scale-110 text-gray-600 hover:text-gray-800 cursor-pointer increment-button">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                </div>
+                                <span id="longBreakTime" class="text-gray-800">15</span>
+                            </div>
+                        </div>
+                    <div class="flex justify-center mt-2">
+                    <button id="saveDurationBtn" class="px-4 py-2 bg-gray-600 text-white rounded hover:border hover:border-white hover:bg-gray-700">Save Duration Settings</button>
+                </div>
+            </div>
+
+            <div class="mt-2">
+            <div class="font-semibold text-lg mb-4 ">Notification Settings</div>
+
+            <div class="space-y-4">
+                <!-- Push Notifications -->
+                <div class="notification-option flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <svg class="size-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                    </svg>
+                    <span>Push Notifications</span>
+                </div>
+                <div class="toggle-switch w-10 h-5 bg-gray-300 rounded-full flex items-center p-1 cursor-pointer" data-setting="push">
+                    <div class="toggle-slider w-3 h-3 bg-white rounded-full transform transition-transform duration-200"></div>
+                </div>
+                </div>
+
+                <!-- Sound -->
+                <div class="notification-option flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <svg class="size-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+                    </svg>
+                    <span>Sound</span>
+                </div>
+                <div class="toggle-switch w-10 h-5 bg-gray-300 rounded-full flex items-center p-1 cursor-pointer" data-setting="sound">
+                    <div class="toggle-slider w-3 h-3 bg-white rounded-full transform transition-transform duration-200"></div>
+                </div>
+                </div>
+
+                <!-- 📳 Vibration -->
+                <div class="notification-option flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <svg class="size-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                    </svg>
+                    <span>Vibration</span>
+                </div>
+                <div class="toggle-switch w-10 h-5 bg-gray-300 rounded-full flex items-center p-1 cursor-pointer" data-setting="vibration">
+                    <div class="toggle-slider w-3 h-3 bg-white rounded-full transform transition-transform duration-200"></div>
+                </div>
+                </div>
+            </div>
+            </div>
+
+
+                    <div class="space-y-4 mt-8">
+                        <input type="text" id="custom-message" placeholder="Enter a message you want to see pop up at the end of sessions" class="w-full p-3 border border-gray-300 rounded" />
+                        <select id="preset-select" class="w-full p-3 border border-gray-300 rounded">
+                            <option value="">----Choose preset----</option>
+                            <option value="Great work! Now breathe">Great work! Now breathe</option>
+                            <option value="Break time, stretch a little.">Break time, stretch a little.</option>
+                            <option value="Time's up -- Take a break">Time's up -- Take a break</option>
+                            <option value="You crushed it. Relax now!">You crushed it. Relax now!</option>
+                            <option value="Session ended, Break Time">Session ended, Break Time</option>
+                        </select>
+                        <div class="flex justify-center space-x-4  ">
+                            <button class="save px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700" id="save-message">Save Message</button>
+                            <button class="save alt px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300" id="reset-message">Reset to Default</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="toastNotification" class="hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[10000] bg-gray-800 text-white p-3 rounded-lg shadow-lg">
+        <span id="toastMessage"></span>
+    </div>
+        <!-- Task Selection Modal -->
+    <div id="taskModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-semibold text-gray-800">Select a Task</h2>
+                <button id="closeTaskModal" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-4">
+                <!-- Search Bar -->
+                <input type="text" id="taskSearch" placeholder="Search tasks..." 
+                    class="w-full p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                
+                <!-- Task List -->
+                <div id="taskList" class="space-y-2 max-h-60 overflow-y-auto">
+                    <!-- Tasks will be populated here -->
+                </div>
+                
+                <!-- Create New Task Option -->
+                <div class="mt-4 pt-4 border-t">
+                    <button id="createNewTask" class="w-full p-2 text-left text-indigo-600 hover:bg-indigo-50 rounded-lg">
+                        + Create New Task
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            //-----------------------------DOM ELEMENTS---------------------------------------//
+            const backBtn = document.getElementById('backBtn');
+            const mainTimerPage = document.getElementById('mainTimerPage');
+            const timeCount = document.getElementById('timeCount');
+            const focusTime = document.getElementById('focusTime');
+            const shortBreakTime = document.getElementById('shortBreakTime');
+            const longBreakTime = document.getElementById('longBreakTime')
+            let sessionCount = document.getElementById('sessionCount');
+            let count = document.getElementById('count');
+            let sessionType = document.getElementById('sessionType');
+            const resetBtn = document.getElementById('resetBtn');
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            const settingIcon = document.getElementById('settingIcon');
+            const settingsSection = document.getElementById('settingsSection');
+            const timerTicks = document.getElementById('timer-ticks');
+            const closeBtn = document.getElementById('closeBtn');
+            const focusDecrementBtn = document.getElementById('focusDecrementBtn');
+            const focusIncrementBtn = document.getElementById('focusIncrementBtn');
+            const shortBreakDecrementBtn = document.getElementById('shortBreakDecrementBtn');
+            const shortBreakIncrementBtn = document.getElementById('shortBreakIncrementBtn');
+            const longBreakDecrementBtn = document.getElementById('longBreakDecrementBtn');
+            const longBreakIncrementBtn = document.getElementById('longBreakIncrementBtn');
+            const saveDurationBtn = document.getElementById('saveDurationBtn');
+            const toastNotification = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            const notificationToggleBtns = document.querySelectorAll('.toggleSwitch');
+            const toggleSliders = document.querySelectorAll('.toggle-slider');
+            const toggleSwitches = document.querySelectorAll('.toggle-switch');
+            const customMessage = document.getElementById('custom-message');
+            const presetSelect = document.getElementById('preset-select');
+            const saveMessageBtn = document.getElementById('save-message');
+            const resetMessageBtn = document.getElementById('reset-message');
+            const savedMessage = localStorage.getItem('customMessage');
+            if (savedMessage) {
+                customMessage.value = JSON.parse(savedMessage);
+            }
+
+            //------------------------------------------Back Btn functionality-------------------------------------------------------//
+            backBtn.addEventListener('click', () => {
+                window.location.href = 'dashboard.html';
+            });
+            //---------------------------------------CREATING THE 60 STROKES INSIDE THE CIRCLE---------------------------------------//
+            const svgNS = "http://www.w3.org/2000/svg"; //Defines the SVG namespace....for creating svg element --> it stores the svg url
+            //The url is the official namespace used in the browser
+            const svg = document.createElementNS(svgNS, "svg"); //creates an svg element in memory for now
+            svg.setAttribute("viewBox", "0 0 1000 1000"); //Adds the attributes of the svg elemnts....so the svg element will be placed in the middle
+            svg.classList.add("absolute", "inset-0", "w-full", "bg-red-500", "h-full");
+            //Loop to create 60 ticks // each iteration represents 1 second/minute
+            for (let i = 0; i < 60; i++) {
+                const angle = (i * 6) - 90; // Start from top
+                // 360/60 to get 60 ticks == 6 degrees...so i x 6 ...will give 6 then another 6 till 360
+                //but then i won't get to 360, because the index starts from 0 - 59 
+                //we subtract 90 because in svg 0 degree starts from 3'oclock 
+                //i.e from the right insted of the top position but we want it to start from 12 
+                //so we subtract 90 for each by rotating it counter clockwise
+
+                const outerRadius = 250; //how far the outer end of the tick is from the center of the circle...where it starts  
+                const innerRadius = 190; //how far in it is from the center of the circle .....where it ends
+                // All ticks are equal: 20 SVG units long (210-190), spaced exactly 6 degrees apart for uniform distribution
+
+                const rad = angle * Math.PI / 180; //Math.PI gives the mathematical value of pi....converts the angle 
+                //from degrees to rad so we canuse it in math.cos/sin
+                //These lines compute the start and end positions of the tick
+                //200 is the center of the svg from the viewbox 400x400
+                const x1 = 200 + outerRadius * Math.cos(rad);  //the horizontal outer end of the tick 
+                //cos is used to get the horizontal direction from the center
+                const y1 = 200 + outerRadius * Math.sin(rad); //sin is used to get the vertical direction from the center
+                const x2 = 200 + innerRadius * Math.cos(rad); //gets the horizontal inner end of the tick
+                const y2 = 200 + innerRadius * Math.sin(rad); //gets the vertical inner end of the tick 
+
+                const line = document.createElementNS(svgNS, "line");
+                line.setAttribute("x1", x1);
+                line.setAttribute("y1", y1);
+                line.setAttribute("x2", x2);
+                line.setAttribute("y2", y2);
+                line.setAttribute("stroke", "gray");
+                line.setAttribute("stroke-width", "2");
+                line.setAttribute("opacity", "1");
+
+                timerTicks.appendChild(line);
+            }
+
+            //TO INITIALIZE TICKS
+            const allTicks = document.querySelectorAll('#timer-ticks line');
+            
+           
+            function resetTicks() {
+                allTicks.forEach(tick => {
+                    tick.setAttribute("stroke", "gray");     // Reset color
+                    tick.setAttribute("opacity", "1");       // Reset visibility
+                });
+            }
+            function updateTicksDisplay(timeLeft) {
+                const totalTicks = 60;
+                const currentSecond = Math.floor(timeLeft % 60);
+                const ticksToHighlight = totalTicks - currentSecond;
+                
+                //Reset ticks at the start of a new 60-second cycle
+                if(currentSecond === 0) {
+                    resetTicks();
+                }
+                allTicks.forEach((tick, index) => {
+                    if (index < ticksToHighlight) {
+                        tick.setAttribute("stroke", "#EF4444");
+                        tick.setAttribute("opacity", "0.8");
+                    } else {
+                        tick.setAttribute("stroke", "#9CA3AF");
+                        tick.setAttribute("opacity", "0.6");
+                    }
+                });
+            }
+            
+            //--------------------------------------TIMER PAGE FUNCTIONALITY ----------------------------------------//
+            
+            //Default before a session is selected
+            let timer = null;  // To store setInterval ID for controlling the countdown
+            let timeLeft = 0; //time left immediately the timer starts
+            let totalDuration = 0; // Track total duration for tick calculation
+            let currentSession = 'Focus'; //type of session running
+            let pomodoroCount = 1; //tracks the cyycle counts      
+            let isRunning = false;  //needed to check if the timer is running or paused,
+            // helping us to avoid the running of multiple timers 
+            let focusDuration = 0;
+            let shortBreakDuration = 0;
+            let longBreakDuration = 0;
+            //------------------------------------------------------ON PAGE LOAD------------------------------------------//
+           
+            focusTime.textContent = JSON.parse(localStorage.getItem('focusTimeDisplay') || 25);
+            shortBreakTime.textContent = JSON.parse(localStorage.getItem('shortBreakDisplay') || 5);
+            longBreakTime.textContent = JSON.parse(localStorage.getItem('longBreakTime') || 15);
+           
+            focusDuration = JSON.parse(localStorage.getItem('focusDuration'));
+            shortBreakDuration = JSON.parse(localStorage.getItem('shortBreakDuration'));
+            longBreakDuration = JSON.parse(localStorage.getItem('longBreakDuration'));
+            initializeTimer();
+
+            //----------------------------------------------FUNCTION TO UPDATE DISPLAY-----------------------------------------//
+            
+            function updateDisplay() {
+                timeCount.textContent = formatTime(timeLeft);
+                sessionType.textContent = currentSession;
+                sessionCount.textContent = `Pomodoro ${pomodoroCount} of 4`           
+            };
+
+            //---------------------------------------FUNCTION TO INITIALIZE TIMER----------------------------------//
+            function initializeTimer() {
+                focusDuration = parseInt(focusTime.textContent, 10) * 60;
+                shortBreakDuration = parseInt(shortBreakTime.textContent, 10) * 60;
+                longBreakDuration = parseInt(longBreakTime.textContent, 10) * 60;
+
+                timeLeft = focusDuration;
+                totalDuration = focusDuration;
+
+                clearInterval(timer);
+                timer = null;
+                isRunning = false;
+
+                resetTicks();
+                updateDisplay();
+                updateTicksDisplay(timeLeft);
+            }
+            //-----------------------------------CONVERT THE TIMER FOR DISPLAY IN THE UI ---------------------------------------//
+
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds/60);
+                const minsInString = mins.toString().padStart(2, 0); //Pad start takes a string and makes two digits instead of 1; e.g 05 instead of 5
+                const secs = seconds % 60;
+                const secondsInString = secs.toString().padStart(2, 0);
+                return `${minsInString}:${secondsInString}`;
+            }
+            
+        //----------------------------------------FUNCTION TO START TIMER----------------------------------------------------//
+            function startTimer() {
+                if (isRunning === true) return;
+
+                isRunning = true;
+                timer = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+                        updateTicksDisplay(timeLeft);
+                    } else {
+                        clearInterval(timer);
+                        timer = null;
+                        switchSession();
+                        updateDisplay();
+                        updateTicksDisplay(timeLeft);
+
+                        if (timeLeft > 0) {
+                            startTimer();
+                        }
+                    }
+                }, 1000);
+            }
+
+            //-----------------------------------------------------------PAUSE TIMER------------------------------------//
+            function pauseTimer() {
+                isRunning = false;
+                clearInterval(timer);
+                timer = null;
+                updateDisplay()
+            }
+            //-------------------------------------------------FUNCTION RESET TIMER---------------------------------------//
+            function resetTimer() {
+                isRunning = false;
+                clearInterval(timer);
+                timer = null;
+                currentSession = 'Focus';
+                timeLeft = focusDuration;
+                totalDuration = focusDuration;
+                pomodoroCount = 1;
+                resetTicks();
+                updateDisplay();
+                
+                // Reset button visibility
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+            }
+            //-----------------------------------------FUNCTION SWITCH SESSION---------------------------------//
+            //This function runs auutomatically when time left hits 0
+            function switchSession() {
+        if (currentSession === 'Focus') {
+            if (pomodoroCount < 4) {
+                showToast("🎉 Focus session completed");
+                currentSession = 'Short Break';
+                timeLeft = shortBreakDuration;
+                totalDuration = shortBreakDuration;
+                pomodoroCount += 1;
+            } else if (pomodoroCount === 4) {
+                showToast("🎉 Short break completed");
+                currentSession = 'Long Break';
+                timeLeft = longBreakDuration;
+                totalDuration = longBreakDuration;
+                showToast("Time's up! Pomodoro cycle completed");
+            }
+        } else if (currentSession === 'Short Break') {
+            currentSession = 'Focus';
+            timeLeft = focusDuration;
+            totalDuration = focusDuration;
+        } else if (currentSession === 'Long Break') {
+            pomodoroCount = 1;
+            currentSession = 'Focus';
+            timeLeft = focusDuration;
+        }
+        clearInterval(timer);
+        timer = null;
+        isRunning = false;
+        resetTicks();
+        updateTicksDisplay(timeLeft);
+    }
+            //---------------------------------------SETTINGS FUNCTIONALITY-------------------------------------//
+            settingIcon.addEventListener('click', () => {
+                settingsSection.classList.remove('hidden');
+                mainTimerPage.classList.add('blur-sm', 'pointer-events-none');//disables pointer events and blurs main timer section
+            });
+
+            closeBtn.addEventListener('click', () => {
+                const svg = closeBtn.querySelector('svg');
+                svg.classList.add('scale-110');
+                 setTimeout(() => svg.classList.remove('scale-110'), 200);
+                settingsSection.classList.add('hidden');
+                mainTimerPage.classList.remove('blur-sm', 'pointer-events-none');
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === "Escape") {
+                    settingsSection.classList.add('hidden');
+                mainTimerPage.classList.remove('blur-sm', 'pointer-events-none');
+                }
+            });
+
+            resetBtn.addEventListener("click", resetTimer);
+            //----------------------------------------START BUTTON ACTION----------------------------------------//
+            startBtn.addEventListener("click", () => {
+                startTimer();
+                pauseBtn.classList.remove('hidden');
+                startBtn.classList.add('hidden');
+            });
+            pauseBtn.addEventListener('click', () => {
+                pauseTimer();
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+            });
+
+            //-------------------------------INCREMENT AND DECREMENT LOGIC------------------------------------//
+            function updateDuration(button, sessionTime, action) {
+                button.addEventListener('click', () => {
+                    let newSessionTime = Number(sessionTime.textContent)
+                    if(action ==='decrement') {
+                        if (newSessionTime > 1)
+                        newSessionTime -= 1;
+                    }
+                    else if (action === 'increment') {
+                        newSessionTime += 1;
+                    }  
+                    sessionTime.textContent = newSessionTime
+                });
+            };   
+        
+            //Apply the function
+            updateDuration(focusDecrementBtn, focusTime, 'decrement');
+            updateDuration(focusIncrementBtn, focusTime, 'increment');
+            updateDuration(shortBreakDecrementBtn, shortBreakTime, 'decrement');
+            updateDuration(shortBreakIncrementBtn, shortBreakTime, 'increment');
+            updateDuration(longBreakDecrementBtn, longBreakTime, 'decrement');
+            updateDuration(longBreakIncrementBtn, longBreakTime, 'increment');
+
+           //-----------------------------------------TOAST NOTIFICATION------------------------------------------//
+        
+            function showToast(message) {
+                toastMessage.textContent = message;
+                toastNotification.classList.remove('hidden');
+
+                //Hide after 3 seconds
+                setTimeout(() => {
+                    toastNotification.classList.add('hidden');
+                }, 3000);
+            }
+
+        //------------------------------------SAVE BUTTON FOR DURATION --------------------------------------//
+        
+            saveDurationBtn.addEventListener('click', () => {
+                localStorage.setItem('focusTimeDisplay', focusTime.textContent);
+                localStorage.setItem('shortBreakDisplay', shortBreakTime.textContent);
+                localStorage.setItem('longBreakTime', longBreakTime.textContent);
+                focusDuration = Number(focusTime.textContent) * 60;
+                shortBreakDuration = Number(shortBreakTime.textContent) * 60;
+                longBreakDuration = Number(longBreakTime.textContent) * 60;
+                initializeTimer();
+                showToast("✅Durations saved");
+                localStorage.setItem('focusDuration', JSON.stringify(focusDuration));
+                localStorage.setItem('shortBreakDuration', JSON.stringify(shortBreakDuration));
+                localStorage.setItem('longBreakDuration', JSON.stringify(longBreakDuration));
+            });
+        //-----------------------------------------------------NOTIFICATION SETTINGS-------------------------------------// 
+            toggleSwitches.forEach((toggleBtn) => {
+                toggleBtn.addEventListener('click', () => {
+                    toggleBtn.classList.toggle('active');
+                    let currentToggleSlider = toggleBtn.querySelector('.toggle-slider');
+                    
+                    if (toggleBtn.classList.contains('active')) {
+                        currentToggleSlider.classList.add('translate-x-5');
+                        toggleBtn.classList.remove('bg-gray-300');
+                        toggleBtn.classList.add('bg-indigo-600');
+                    } else {
+                        currentToggleSlider.classList.remove('translate-x-5');
+                        toggleBtn.classList.remove('bg-indigo-600');
+                        toggleBtn.classList.add('bg-gray-300');
+                    }
+                    
+                    let newState = toggleBtn.classList.contains('active');
+                    localStorage.setItem(toggleSetting, newState);
+                });
+            });
+
+    //-----------------------ON PAGE LOAD...THE TOGGLE BUTTON FUNCTIONALITY----------------------------//
+            
+            const value = localStorage.getItem('toggleSetting');
+            toggleSwitches.forEach((toggleBtn) => {
+                toggleSetting = toggleBtn.dataset.setting;
+                const savedState = localStorage.getItem(toggleSetting);
+                if (savedState === 'true') {
+                    toggleBtn.classList.add('active');
+                    let currentToggleSlider = toggleBtn.querySelector('.toggle-slider');
+                    currentToggleSlider.classList.add('translate-x-5');
+                } else {
+                    toggleBtn.classList.remove('active');
+                    let currentToggleSlider = toggleBtn.querySelector('.toggle-slider');
+                    currentToggleSlider.classList.remove('translate-x-5');
+                }
+            });
+
+            //-------------------------------PRESET MESSAGE FUNCTIONALITY------------------------------------------//
+                
+            presetSelect.addEventListener('change', () => {
+                const selectedMessage = presetSelect.value;
+                customMessage.value = selectedMessage;
+            });
+
+            saveMessageBtn.addEventListener('click', () => {
+                //To check if something was saved before
+                const savedMessage = localStorage.getItem('customMessage');
+                localStorage.setItem('customMessage', JSON.stringify(customMessage.value));
+                showToast('Message Saved✅');
+            });
+
+            resetMessageBtn.addEventListener('click', () => {
+                customMessage.value = '';
+                localStorage.removeItem('customMessage');
+                showToast('Message Reset to Default');
+            });
+            //----------------------------------------- ADD TASK ----------------------------------------------//
+            // addTaskBtn.addEventListener('click', () => {
+            //     const taskModal = document.getElementById('taskModal');
+            //     const closeTaskModal = document.getElementById('closeTaskModal');
+            //     const taskSearch = document.getElementById('taskSearch');
+            //     const taskList = document.getElementById('taskList');
+            //     const createNewTask = document.getElementById('createNewTask');
+            
+
+            // });
+
+          //---------------------TIMER FUNCTIONALITY FOR DASHBOARD----------------------------------------//
+          const endTimeandDate = new Date();
+          const formattedTime = endTimeandDate.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+          const lastFocusDuration = parseInt(localStorage.getItem("focusDuration")) || "25";
+
+          // 4. Save that session's data to localStorage
+          localStorage.setItem("lastTimerDuration", `${focusDuration} seconds`);
+          localStorage.setItem("lastTimerTime", formattedTime);
+
+
+
+        });
+    </script>
+</body>
+</html>
