@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Note</title>
+  <link rel="stylesheet" href="./output.css" />
+</head>
+<body class="px-5 py-5 h-screen scroll-smooth">
+    <span id="backBtn"  class="text-gray-600 hover:cursor-pointer hover:scale-110 hover:text-black" aria-label="Back" title="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+    </span>
+    <h1 class="flex items-center justify-center text-3xl font-semibold mb-10">Create Note</h1>
+    <form id="form">
+        <span class="flex flex-row gap-5 mb-4 text-lg">
+            <span class="font-medium text-lg">Title:</span>
+            <input id="titleInput" required type="text" placeholder="Enter Note Title" class="w-1/2 border rounded-md border-gray-300 px-2 py-1 outline-0 hover:border-dashed hover:border-black"">
+        </span>
+        <span class="flex flex-row gap-4 mb-4">
+            <span class="font-medium text-lg">Date:</span>
+            <input id="dateInput" type="date" required class="w-1/2 border rounded-md border-gray-300 px-2 py-1 outline-0 hover:border-dashed hover:border-black">
+        </span>
+        <span class="flex items-center gap-3 my-4 mb-4">
+            <input type="checkbox" id="pinInput" class="accent-gray-700 w-5 h-5">
+            <label for="pinInput" class="text-lg font-medium text-gray-700">📌 Pin this note</label>
+        </span>
+        <span class="flex flex-row gap-6">
+            <span class="font-medium text-lg">Tag:</span>
+            <div id="tags" class="flex flex-row gap-4">
+                <span data-tag="🟪All" class="tag border rounded-md px-2 py-1 border-gray-300 
+                hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">All</span>
+                <span data-tag="🟨Personal" class="tag border rounded-md px-2 py-1 border-gray-300
+                hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">Personal</span>
+                <span data-tag="🟥Work" class="tag border rounded-md px-2 py-1 border-gray-300
+                hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">Work</span>
+                <span data-tag="🟩School" class="tag border rounded-md px-2 py-1 border-gray-300
+                hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">School</span>
+                <span data-tag="🟧Ideas" class="tag border rounded-md px-2 py-1 border-gray-300
+                hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">Ideas</span>
+                <!-- <span aria-label="Coming Soon" title="Coming Soon" class="tag border rounded-md px-2 py-1 border-gray-300
+                hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 hover:scale-110 hover:text-black">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>  -->
+                </span>
+            </div>
+        </span>
+        <div class="mt-8 flex flex-1 bg-gray-300 rounded-lg">
+            <textarea id="textBody"
+            placeholder="Start typing your note here..." required
+            class="w-full h-full border border-gray-200 rounded-md px-3 py-3 resize-none bg-white focus:outline-none text-base leading-normal placeholder:text-black" rows="10"></textarea>
+        </div>
+        <div class="flex justify-center mt-5 ">
+            <button class="flex flex-row border border-gray-400 hover:bg-gray-100 rounded-md px-2 py-2 text-gray-600 hover:cursor-pointer hover:scale-110 hover:border-dashed hover:border-black">
+                <span id="saveBtn" class="text-gray-600 hover:cursor-pointer hover:scale-110 hover:text-black" aria-label="Save" title="Save">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+                    </svg>
+                </span>
+                <span class="ml-2">Save Note</span>
+            </button>
+        </div>
+        
+    </form>
+    <div id="toastNotification" class="hidden fixed left-1/2 transform -translate-x-1/2 z-[10000] bg-gray-800 text-white p-3 rounded-lg shadow-lg">
+        <span id="toastMessage"></span>
+    </div>
+    <script>
+        //---------------------------------------------------------DOM ELEMENTS-------------------------------------------//
+        document.addEventListener("DOMContentLoaded", () => {
+            const backBtn = document.getElementById('backBtn'); 
+            const form = document.getElementById('form');
+            const titleInput = document.getElementById('titleInput');   
+            const dateInput = document.getElementById('dateInput');
+            const pinInput = document.getElementById("pinInput");
+            const tags = document.querySelectorAll('.tag')
+            const textBody = document.getElementById('textBody');
+            let selectedTag = '';
+            let noteDetails = {};
+            const toastNotification = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            //--------------------------------------Header buttons Event Listeners---------------------------------------------//
+            backBtn.addEventListener('click', () => {
+                window.location.href = "notes_app.html";
+            });
+
+            function getSelectedTag() {
+                tags.forEach((tagBtn) => {
+                    tagBtn.addEventListener('click', () => {
+                        tags.forEach(tag => tag.classList.remove('active-tag'));
+                        tagBtn.classList.add('active-tag', 'bg-gray-300');
+                        setTimeout(() => {
+                            tagBtn.classList.remove('active-tag', 'bg-gray-300');
+                        }, 3000)
+                        selectedTag = tagBtn.dataset.tag;
+                        return selectedTag;
+                    });
+                });
+            };
+            getSelectedTag();
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                titleInputValue = titleInput.value.trim();
+                dateInputValue = dateInput.value;
+                tagValue = selectedTag;
+                textBodyValue = textBody.value.trim();
+                showToast("🎉Note Saved Successfully!");
+                // setInterval(()=> {
+                //     window.location.href = "notes_app.html";
+                // }, 1000);
+
+                noteDetails = {
+                    title : titleInput.value.trim(),
+                    date : dateInput.value,
+                    tag : selectedTag,
+                    text : textBody.value.trim(),
+                    pinned: pinInput.checked
+                };
+
+                titleInput.value = '';
+                dateInput.value = '';
+                selectedTag = '';
+                textBody.value = '';
+
+                //Save to localStorage
+                let notesArray = JSON.parse(localStorage.getItem("allNotes")) || [];
+                const editIndex = localStorage.getItem("editNoteIndex");
+
+                if (editIndex !== null) {
+                    notesArray[parseInt(editIndex)] = noteDetails;
+                    showToast("📝 Note Updated Sucessfully");
+
+                    //Clear edit data
+                    localStorage.removeItem("noteToEdit");
+                    localStorage.removeItem("editNoteIndex");
+                } else {
+                    notesArray.push(noteDetails);
+                    showToast("🎉Note Saved Successfully!");
+                }
+                localStorage.setItem("allNotes", JSON.stringify(notesArray));
+
+                setInterval(() => {
+                    window.location.href = "notes_app.html";
+                }, 2000)
+            });
+
+            function showToast(message) {
+                toastMessage.textContent = message;
+                toastNotification.classList.remove('hidden');
+
+                //Hide after 3 seconds
+                setTimeout(() => {
+                    toastNotification.classList.add('hidden');
+                }, 3000);
+            }
+        
+            //------------------------------------------------------function to edit--------------------------------------//
+            // the note i saved in localStorage from the notes app, i'll try to retrieve it now
+            const rawNote = localStorage.getItem("noteToEdit");
+            let noteToEdit = null; //set to null initially
+            if (rawNote) {
+                noteToEdit = JSON.parse(rawNote);
+            }
+            if (noteToEdit) {
+                titleInput.value = noteToEdit.title;
+                dateInput.value = noteToEdit.date;
+                selectedTag = noteToEdit.tag //this saves just the value of selected tag
+                textBody.value = noteToEdit.text;
+                pinInput.checked = noteToEdit.pinned || false;
+            }
+            tags.forEach(tag => tag.classList.remove('bg-gray-300', 'active-tag'));
+            tags.forEach(tag => {
+                if (tag.dataset.tag === selectedTag) { 
+                    //loops through all the tags and checks which value equals that of the selected tag
+                    tag.classList.add('bg-gray-300', 'active-tag'); //adds visual styling
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
