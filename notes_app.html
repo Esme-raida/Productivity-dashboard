@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notes</title>
+  <link rel="stylesheet" href="./output.css" />
+</head>
+<body class="px-5 py-5 bg-gray-200">
+    <div class="flex flex-row relative mb-10">
+        <span id="backBtn"  class="text-gray-600 hover:cursor-pointer hover:scale-110 hover:text-black" aria-label="Back" title="Back">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+        </span>
+        <header class="absolute right-1/2 transform translate-x-1/2 text-4xl font-semibold">Notes</header>
+    </div>
+    <div id="actionButtons" class="grid grid-cols-2 gap-5 text-gray-600"> 
+        <div id="newNote" aria-label="New Note" title="New Note" class="flex flex-row border rounded-md border-gray-300 bg-gray-100 px-2 py-1 hover:cursor-pointer hover:border-dashed hover:border-black">
+            <svg id="addNoteBtn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 hover:scale-110 hover:text-black">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span class="pl-2">New Note</span>
+        </div>
+        <div class="flex flex-row px-2 bg-white border border-gray-300 rounded-md hover:cursor-pointer relative hover:border-dashed hover:border-black">
+            <svg id="searchBtn" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 absolute bottom-1.5 text-gray-500 hover:scale-110 hover:text-black">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg> 
+            <input id="searchInput" type="search" placeholder="Search" class="pl-7 text-md w-full outline-0">
+        </div>
+    </div>
+
+    <div id="cards" class="">
+        <div id="cardContainer" class="hover:cursor-pointer grid grid-cols-1 gap-5 mt-10"></div>
+    </div>
+
+    <div id="toastNotification" class="hidden fixed left-1/2 transform -translate-x-1/2 z-[10000] bg-gray-800 text-white p-3 rounded-lg shadow-lg">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!--MODAL OVERLAY FOR FULL NOTE VIEW -->
+
+    <div id="noteModal" class=" flex fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+        <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 p-6 max-h-[90vh] overflow-y-auto relative scale-95 transition-transform duration-300 ease-in-out">
+            
+            <!-- Close Button -->
+            <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
+            
+            <!-- Full Note Content -->
+            <div id="modalTag" class="text-xl font-semibold text-green-700 mb-2"></div>
+            <h2 id="modalTitle" class="text-2xl font-bold mb-2"></h2>
+            <p id="modalDate" class="text-sm text-gray-400 mb-4"></p>
+            <p id="modalText" class="whitespace-pre-wrap text-gray-800 leading-relaxed"></p>
+        
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            //----------------------------------------------DOM ELEMENTS---------------------------------------//
+            const backBtn = document.getElementById('backBtn');
+            const newNote = document.getElementById('newNote');
+            const addNoteBtn = document.getElementById('addNoteBtn');
+            const cardContainer = document.getElementById('cardContainer');
+            let selectedNoteIndex = '';
+            let selectedNoteData = '';
+            const filteredNotes = [];
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const noteModal = document.getElementById('noteModal');
+            const closeModal = document.getElementById('closeModal');
+            const modalTag = document.getElementById('modalTag');
+            const modalTitle = document.getElementById('modalTitle')
+            const modalDate = document.getElementById('modalDate');
+            const modalText = document.getElementById('modalText');
+            const toastNotification = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            //----------------------------------------------------------BACK BUTTON FUNCTONALITY----------------------------------//
+            backBtn.addEventListener('click', () => {
+                window.location.href = 'dashboard.html';
+            });
+            //------------------------------------------------------------------------------------------------//
+            
+            //parse notesArray data from localstorage
+            let notesArray = JSON.parse(localStorage.getItem("allNotes")) || [];
+            //if no notesArray or notesArray is empty, display no notes yet!
+            if (!notesArray || notesArray.length === 0) {
+                showToast("No notes yet")
+                //else, use each notes array to create note with it's index
+            } else {
+                notesArray.sort((a, b) => {
+                    return (b.pinned === true) - (a.pinned === true); //true first
+                })
+                notesArray.forEach((note, i) => {
+                    createNoteCard(note, i); // This generates a card for each real note
+                });
+                attachDeleteListeners();
+                attachEditListeners();
+            }
+            attachModalListeners();
+
+            function attachModalListeners() {
+                const allCards = document.querySelectorAll('.note-card');
+                allCards.forEach((card) => {
+                    card.addEventListener('click', () => {
+                        notesArray = JSON.parse(localStorage.getItem("allNotes"));
+                        const title = card.querySelector('.note-title')?.textContent || '';
+                        const tag = card.querySelector('.note-tag')?.textContent || '';
+                        const text = card.querySelector('.note-text')?.textContent || '';
+                        const date = card.querySelector('.date')?.textContent || '';
+
+                        modalTitle.textContent = title;
+                        modalTag.textContent = tag;
+                        modalText.textContent = text;
+                        modalDate.textContent = date;
+                        noteModal.classList.remove('hidden');
+                    });
+                });
+                closeModal.addEventListener('click', () => {
+                    noteModal.classList.add('hidden');
+                });
+                noteModal.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        noteModal.classList.add('hidden');
+                    }
+                });
+           }            
+
+            //-----------------------------------FUNCTION TO SHOW TOAST------------------------------------------//
+            function showToast(message) {
+                toastMessage.textContent = message;
+                toastNotification.classList.remove('hidden');
+
+                //Hide after 3 seconds
+                setTimeout(() => {
+                    toastNotification.classList.add('hidden');
+                }, 3000);
+            }
+            
+            //-----------------------------------FUNCTION TO CREATE NOTE------------------------------------------//
+            function createNoteCard(noteObject, i) {
+                const title = noteObject.title;
+                const date = noteObject.date;
+                const formattedDate = new Date(date).toLocaleDateString('en-US', {
+                    weekday:"short",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                });
+                const tag  = noteObject.tag;
+                const text = noteObject.text; 
+                const isPinned = noteObject.pinned;
+            
+
+                let html = `
+                    <div class="note-card max-h-50 mb-2 overflow-hidden shadow-lg hover:border-dashed hover:border-black grid bg-gray-100 border border-gray-300 rounded-lg px-5 py-4">
+                        <span class="note-tag text-2xl font-semibold border-gray-300">${tag}</span>
+                        <h1 class="note-title font-medium mt-2 mb-1">
+                            ${isPinned ? "📌 " : ""}${title}
+                        </h1>
+                        <span class="note-text break-words  line-clamp-4">
+                        ${text}
+                        </span>
+                        <footer class="flex flex-row justify-between mt-10">
+                            <span class="date font-sans">${formattedDate}</span>
+                            <div class="flex flex-row gap-3">
+                            <span data-index="edit-${i}" aria-label="Edit" title="Edit" class="editButton border border-gray-300 rounded-md px-2 py-1 hover:border-dashed hover:border-black hover:bg-gray-300 hover:cursor-pointer hover:scale-110">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                </svg>
+                            </span>
+                            <span data-index="delete-${i}" aria-label="Delete" title="Delete" class="deleteButton border border-gray-300 rounded-md px-2 py-1 hover:border-dashed hover:border-black hover:bg-gray-300 hover:cursor-pointer hover:scale-110">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m6 4.125 2.25 2.25m0 0 2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                                </svg>
+                            </span>
+                            </div>
+                        </footer>
+                    </div>`
+                cardContainer.innerHTML += html;
+            }
+
+           //-----------------------------EDIT BUTTON----------------------------------//
+           function attachEditListeners() {
+                const editButtons = document.querySelectorAll('.editButton');
+                    editButtons.forEach((editButton) => {
+                        editButton.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            selectedNoteIndex = editButton.dataset.index.split('-')[1];
+                        //I curently have in the dataset edit-index so it'll split it and pick
+                        //  the second value which is the index and save it to selected index
+                        
+                        //To get notes Array when the dit button is clicked
+                        notesArray = JSON.parse(localStorage.getItem("allNotes"));
+                        selectedNoteData = notesArray[selectedNoteIndex]; //gets the note data by index
+                        //Store the selected note and it's index in localStorage
+                        localStorage.setItem("noteToEdit", JSON.stringify(selectedNoteData));
+                        localStorage.setItem("editNoteIndex", selectedNoteIndex);
+                        
+                    // Redirect to the create/edit page
+                        window.location.href = "add_note.html";
+                    });
+                });
+           } 
+          
+
+            //--------------------------------------------DELETE BUTTON FUNCTIONALITY---------------------------------//
+           function attachDeleteListeners() {
+                const deleteButtons = document.querySelectorAll('.deleteButton');
+                deleteButtons.forEach((deleteBtn) => {
+                    deleteBtn.addEventListener('click', () => {
+                        selectedDeleteBtn = deleteBtn.dataset.index;
+                        selectedDeleteBtnIndex = selectedDeleteBtn.split('-')[1];
+                        const userConfirmed = confirm("Are you sure you want to delete this note?")
+                        
+                        if(userConfirmed) {
+
+                            notesArray = JSON.parse(localStorage.getItem("allNotes"));
+                            if (notesArray[selectedDeleteBtnIndex]) {
+                                notesArray.splice(selectedDeleteBtnIndex, 1); //This removes 1 item at the position selectedNoteIndex.
+                            
+                                //Reset the notes array back to localStorage
+                                localStorage.setItem("allNotes", JSON.stringify(notesArray));
+                                showToast("🗑️ Note deleted successfully!");
+                            
+                                setTimeout(() => {
+                                location.reload();
+                                }, 600); // Wait 1.2 seconds so the toast is visible
+                                    
+                            } else {
+                                showToast("Oops! Note already deleted.")
+                                return;
+                            }    
+                        } else {
+                            showToast("Deletion cancelled");
+                        }
+                    });
+                });            
+           }
+           
+            //-----------------------------------BUTTONS AND EVENT LISTENERS------------------------------------------//
+            newNote.addEventListener('click', () => {
+                // Clear any existing edit data before going to new note
+                localStorage.removeItem("noteToEdit");
+                localStorage.removeItem("editNoteIndex");
+                window.location.href = "add_note.html";
+            });
+                           //reset when user clears input
+            searchInput.addEventListener("input", () => {
+                if (searchInput.value.trim() === "") {
+                    allCards.forEach((card) => card.classList.remove("hidden"));
+                }
+            });
+
+            //--------------------------------------------------------search button functionality--------------------------------------------//
+            function performSearch() {
+                const searchInputValue = searchInput.value.toLowerCase().trim();
+                const allCards = document.querySelectorAll('.note-card');
+
+                allCards.forEach((card) => {
+                    const title = card.querySelector('.note-title').textContent.toLowerCase();
+                    const tag = card.querySelector('.note-tag').textContent.toLowerCase();
+                    const text = card.querySelector('.note-text').textContent.toLowerCase();
+
+                    if (
+                        title.includes(searchInputValue) ||
+                        tag.includes(searchInputValue) ||
+                        text.includes(searchInputValue)
+                    ) {
+                        card.classList.remove("hidden");
+                    } else {
+                        card.classList.add("hidden");
+                    }
+                });
+            }
+            //------------------------------------------------search and enter button event listeners-------------------------------------//
+            searchBtn.addEventListener('click', () => {
+                performSearch();
+            });
+
+            searchInput.addEventListener('keydown', (event) => {
+                if(event.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        });
+        
+    </script>
+</body>
+</html>
