@@ -39,11 +39,6 @@
                 hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">School</span>
                 <span data-tag="🟧Ideas" class="tag border rounded-md px-2 py-1 border-gray-300
                 hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">Ideas</span>
-                <!-- <span aria-label="Coming Soon" title="Coming Soon" class="tag border rounded-md px-2 py-1 border-gray-300
-                hover:scale-110 hover:bg-gray-200 hover:border-dashed hover:border-black hover:cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 hover:scale-110 hover:text-black">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>  -->
                 </span>
             </div>
         </span>
@@ -68,117 +63,110 @@
         <span id="toastMessage"></span>
     </div>
     <script>
-        //---------------------------------------------------------DOM ELEMENTS-------------------------------------------//
+        
         document.addEventListener("DOMContentLoaded", () => {
-            const backBtn = document.getElementById('backBtn'); 
+            //-------------------------------------------DOM ELEMENTS-------------------------------------------//
+            const backBtn = document.getElementById('backBtn');
             const form = document.getElementById('form');
-            const titleInput = document.getElementById('titleInput');   
+            const titleInput = document.getElementById('titleInput');
             const dateInput = document.getElementById('dateInput');
             const pinInput = document.getElementById("pinInput");
-            const tags = document.querySelectorAll('.tag')
+            const tags = document.querySelectorAll('.tag');
             const textBody = document.getElementById('textBody');
-            let selectedTag = '';
-            let noteDetails = {};
             const toastNotification = document.getElementById('toastNotification');
             const toastMessage = document.getElementById('toastMessage');
-            //--------------------------------------Header buttons Event Listeners---------------------------------------------//
+
+            let selectedTag = '';
+            let noteDetails = {};
+
+            // Back button clears the edit mode and everything else saved in localStorage
             backBtn.addEventListener('click', () => {
+                localStorage.removeItem("noteToEdit");
+                localStorage.removeItem("editNoteIndex");
+                //redirects the user back to the dashboard
                 window.location.href = "notes_app.html";
             });
 
-            function getSelectedTag() {
-                tags.forEach((tagBtn) => {
-                    tagBtn.addEventListener('click', () => {
-                        tags.forEach(tag => tag.classList.remove('active-tag'));
-                        tagBtn.classList.add('active-tag', 'bg-gray-300');
-                        setTimeout(() => {
-                            tagBtn.classList.remove('active-tag', 'bg-gray-300');
-                        }, 3000)
-                        selectedTag = tagBtn.dataset.tag;
-                        return selectedTag;
-                    });
-                });
-            };
-            getSelectedTag();
+            //  Prefilling the form if note to edit exists
+            const noteToEdit = localStorage.getItem("noteToEdit");
+            const editIndex = localStorage.getItem("editNoteIndex");
 
+            //if note to edit and the edit index is not null, parse noteToEdit
+            if (noteToEdit && editIndex !== "") {
+                const noteData = JSON.parse(noteToEdit);
+
+                titleInput.value = noteData.titleInputValue || "";
+                dateInput.value = noteData.dateInputValue || "";
+                textBody.value = noteData.textBodyValue || "";
+                selectedTag = noteData.tagValue || "";
+                pinInput.checked = noteData.pinned || false;
+
+                // Highlight selected tag
+                tags.forEach(tag => {
+                    tag.classList.remove('bg-gray-300', 'active-tag');
+                    if (tag.dataset.tag === selectedTag) {
+                        tag.classList.add('bg-gray-300', 'active-tag');
+                    }
+                });
+            }
+
+            // Tag selection logic, doing it when a tag is selected in the from the form
+            //then save that tag as the selected tag
+            tags.forEach((tagBtn) => {
+                tagBtn.addEventListener('click', () => {
+                    tags.forEach(tag => tag.classList.remove('active-tag', 'bg-gray-300'));
+                    tagBtn.classList.add('active-tag', 'bg-gray-300');
+                    selectedTag = tagBtn.dataset.tag;
+                });
+            });
+
+            // Form submission logic
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
-                titleInputValue = titleInput.value.trim();
-                dateInputValue = dateInput.value;
-                tagValue = selectedTag;
-                textBodyValue = textBody.value.trim();
-                showToast("🎉Note Saved Successfully!");
-                // setInterval(()=> {
-                //     window.location.href = "notes_app.html";
-                // }, 1000);
 
                 noteDetails = {
-                    title : titleInput.value.trim(),
-                    date : dateInput.value,
-                    tag : selectedTag,
-                    text : textBody.value.trim(),
+                    noteId: editIndex || Date.now().toString(),
+                    titleInputValue: titleInput.value.trim(),
+                    dateInputValue: dateInput.value,
+                    tagValue: selectedTag,
+                    textBodyValue: textBody.value.trim(),
                     pinned: pinInput.checked
                 };
 
-                titleInput.value = '';
-                dateInput.value = '';
-                selectedTag = '';
-                textBody.value = '';
-
-                //Save to localStorage
                 let notesArray = JSON.parse(localStorage.getItem("allNotes")) || [];
-                const editIndex = localStorage.getItem("editNoteIndex");
 
                 if (editIndex !== null) {
-                    notesArray[parseInt(editIndex)] = noteDetails;
-                    showToast("📝 Note Updated Sucessfully");
-
-                    //Clear edit data
+                    // Updating the note, when the edit button is not null, get the index of that edit button
+                    //use that index to get that particular note from the notes array and push the notes details in there.
+                    const index = parseInt(editIndex);
+                    notesArray[index] = noteDetails;
+                    showToast("📝 Note Updated Successfully");
+                    
+                    //remove the items from localStorage
                     localStorage.removeItem("noteToEdit");
                     localStorage.removeItem("editNoteIndex");
                 } else {
+                    //Add new note
                     notesArray.push(noteDetails);
-                    showToast("🎉Note Saved Successfully!");
+                    showToast("🎉 Note Saved Successfully!");
                 }
+
                 localStorage.setItem("allNotes", JSON.stringify(notesArray));
 
-                setInterval(() => {
+                setTimeout(() => {
                     window.location.href = "notes_app.html";
-                }, 2000)
+                }, 500);
             });
 
+            // Toast function
             function showToast(message) {
                 toastMessage.textContent = message;
                 toastNotification.classList.remove('hidden');
 
-                //Hide after 3 seconds
                 setTimeout(() => {
                     toastNotification.classList.add('hidden');
-                }, 3000);
+                }, 1500);
             }
-        
-            //------------------------------------------------------function to edit--------------------------------------//
-            // the note i saved in localStorage from the notes app, i'll try to retrieve it now
-            const rawNote = localStorage.getItem("noteToEdit");
-            let noteToEdit = null; //set to null initially
-            if (rawNote) {
-                noteToEdit = JSON.parse(rawNote);
-            }
-            if (noteToEdit) {
-                titleInput.value = noteToEdit.title;
-                dateInput.value = noteToEdit.date;
-                selectedTag = noteToEdit.tag //this saves just the value of selected tag
-                textBody.value = noteToEdit.text;
-                pinInput.checked = noteToEdit.pinned || false;
-            }
-            tags.forEach(tag => tag.classList.remove('bg-gray-300', 'active-tag'));
-            tags.forEach(tag => {
-                if (tag.dataset.tag === selectedTag) { 
-                    //loops through all the tags and checks which value equals that of the selected tag
-                    tag.classList.add('bg-gray-300', 'active-tag'); //adds visual styling
-                }
-            });
-
         });
     </script>
 </body>
