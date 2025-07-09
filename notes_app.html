@@ -57,14 +57,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            console.log("Hello")
             //----------------------------------------------DOM ELEMENTS---------------------------------------//
             const backBtn = document.getElementById('backBtn');
             const newNote = document.getElementById('newNote');
             const addNoteBtn = document.getElementById('addNoteBtn');
             const cardContainer = document.getElementById('cardContainer');
-            let selectedNoteIndex = '';
-            let selectedNoteData = '';
-            const filteredNotes = [];
             const searchInput = document.getElementById('searchInput');
             const searchBtn = document.getElementById('searchBtn');
             const noteModal = document.getElementById('noteModal');
@@ -97,31 +95,59 @@
                 });
                 attachDeleteListeners();
                 attachEditListeners();
+                attachModalListeners();
             }
-            attachModalListeners();
+
+            function getNoteData(noteObject) {
+                return {
+                    title: noteObject.titleInputValue || noteObject.title || 'Untitled',
+                    date: noteObject.dateInputValue || noteObject.date || new Date().toISOString().split('T')[0],
+                    tag: noteObject.tagValue || noteObject.tag || '🟪All',
+                    text: noteObject.textBodyValue || noteObject.text || 'No content',
+                    pinned: noteObject.pinned || false
+                };
+            }
 
             function attachModalListeners() {
                 const allCards = document.querySelectorAll('.note-card');
-                allCards.forEach((card) => {
-                    card.addEventListener('click', () => {
-                        notesArray = JSON.parse(localStorage.getItem("allNotes"));
-                        const title = card.querySelector('.note-title')?.textContent || '';
-                        const tag = card.querySelector('.note-tag')?.textContent || '';
-                        const text = card.querySelector('.note-text')?.textContent || '';
-                        const date = card.querySelector('.date')?.textContent || '';
+                allCards.forEach((card, index) => {
+                    card.addEventListener('click', (e) => {
+                        // Check if click was on edit/delete buttons
+                        if (e.target.closest('.editButton') || e.target.closest('.deleteButton')) {
+                        return; // Don't open modal if clicking edit/delete
+                        }
+                        console.log(index);
+                       // Get the note data from the notesArray using the card's index
+                        const noteData = getNoteData(notesArray[index]);
+                        
+                        // Format the date for display
+                        const formattedDate = new Date(noteData.date).toLocaleDateString('en-US', {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric"
+                        });
 
-                        modalTitle.textContent = title;
-                        modalTag.textContent = tag;
-                        modalText.textContent = text;
-                        modalDate.textContent = date;
+                        modalTitle.textContent = noteData.title;
+                        modalTag.textContent = noteData.tag;
+                        modalText.textContent = noteData.text;
+                        modalDate.textContent = formattedDate;
                         noteModal.classList.remove('hidden');
                     });
                 });
                 closeModal.addEventListener('click', () => {
                     noteModal.classList.add('hidden');
                 });
-                noteModal.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
+                // Close modal on clicking outside
+                noteModal.addEventListener('click', (e) => {
+                    if (e.target === noteModal) {
+                        noteModal.classList.add('hidden');
+                    }
+                });
+
+                // Close modal on Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !noteModal.classList.contains('hidden')) {
                         noteModal.classList.add('hidden');
                     }
                 });
@@ -132,35 +158,30 @@
                 toastMessage.textContent = message;
                 toastNotification.classList.remove('hidden');
 
-                //Hide after 3 seconds
+                //Hide after half a second
                 setTimeout(() => {
                     toastNotification.classList.add('hidden');
-                }, 3000);
+                }, 500);
             }
             
             //-----------------------------------FUNCTION TO CREATE NOTE------------------------------------------//
             function createNoteCard(noteObject, i) {
-                const title = noteObject.title;
-                const date = noteObject.date;
-                const formattedDate = new Date(date).toLocaleDateString('en-US', {
+                const noteData = getNoteData(noteObject);
+                const formattedDate = new Date(noteData.date).toLocaleDateString('en-US', {
                     weekday:"short",
                     year: "numeric",
                     month: "long",
                     day: "numeric"
                 });
-                const tag  = noteObject.tag;
-                const text = noteObject.text; 
-                const isPinned = noteObject.pinned;
             
-
                 let html = `
                     <div class="note-card max-h-50 mb-2 overflow-hidden shadow-lg hover:border-dashed hover:border-black grid bg-gray-100 border border-gray-300 rounded-lg px-5 py-4">
-                        <span class="note-tag text-2xl font-semibold border-gray-300">${tag}</span>
+                        <span class="note-tag text-2xl font-semibold border-gray-300">${noteData.tag}</span>
                         <h1 class="note-title font-medium mt-2 mb-1">
-                            ${isPinned ? "📌 " : ""}${title}
+                            ${noteData.pinned ? "📌 " : ""}${noteData.title}
                         </h1>
                         <span class="note-text break-words  line-clamp-4">
-                        ${text}
+                        ${noteData.text}
                         </span>
                         <footer class="flex flex-row justify-between mt-10">
                             <span class="date font-sans">${formattedDate}</span>
@@ -182,48 +203,56 @@
             }
 
            //-----------------------------EDIT BUTTON----------------------------------//
-           function attachEditListeners() {
-                const editButtons = document.querySelectorAll('.editButton');
-                    editButtons.forEach((editButton) => {
-                        editButton.addEventListener('click', (e) => {
+            function attachEditListeners() {
+                // Listen once on the parent container
+                    const editButtons = document.querySelectorAll(".editButton");
+                    editButtons.forEach((editBtn) => {
+                        editBtn.addEventListener('click', (e) => {
                             e.stopPropagation();
-                            selectedNoteIndex = editButton.dataset.index.split('-')[1];
-                        //I curently have in the dataset edit-index so it'll split it and pick
-                        //  the second value which is the index and save it to selected index
-                        
-                        //To get notes Array when the dit button is clicked
-                        notesArray = JSON.parse(localStorage.getItem("allNotes"));
-                        selectedNoteData = notesArray[selectedNoteIndex]; //gets the note data by index
-                        //Store the selected note and it's index in localStorage
-                        localStorage.setItem("noteToEdit", JSON.stringify(selectedNoteData));
-                        localStorage.setItem("editNoteIndex", selectedNoteIndex);
-                        
-                    // Redirect to the create/edit page
-                        window.location.href = "add_note.html";
-                    });
-                });
-           } 
+
+                            if (!editBtn) return; // not an edit button
+
+                            const index = parseInt(editBtn.dataset.index.split('-')[1]);
+                            console.log("Parsed index:", index);
+                            const notesArray = JSON.parse(localStorage.getItem("allNotes")) || [];
+                            const selectedNote = notesArray[index];
+
+                            if (selectedNote) {
+                                localStorage.setItem("noteToEdit", JSON.stringify(selectedNote));
+                                localStorage.setItem("editNoteIndex", index);
+                                window.location.href = "add_note.html";
+                            } else {
+                                showToast("Note not found!");
+                            }
+                });     });
+            }
+
           
 
             //--------------------------------------------DELETE BUTTON FUNCTIONALITY---------------------------------//
            function attachDeleteListeners() {
                 const deleteButtons = document.querySelectorAll('.deleteButton');
                 deleteButtons.forEach((deleteBtn) => {
-                    deleteBtn.addEventListener('click', () => {
-                        selectedDeleteBtn = deleteBtn.dataset.index;
-                        selectedDeleteBtnIndex = selectedDeleteBtn.split('-')[1];
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation(); //Prevent the modal from opening
+
+                        const selectedDeleteBtn = deleteBtn.dataset.index;
+                        const selectedDeleteBtnIndex = selectedDeleteBtn.split('-')[1];
                         const userConfirmed = confirm("Are you sure you want to delete this note?")
                         
                         if(userConfirmed) {
 
-                            notesArray = JSON.parse(localStorage.getItem("allNotes"));
+                            let notesArray = JSON.parse(localStorage.getItem("allNotes"));
                             if (notesArray[selectedDeleteBtnIndex]) {
                                 notesArray.splice(selectedDeleteBtnIndex, 1); //This removes 1 item at the position selectedNoteIndex.
                             
                                 //Reset the notes array back to localStorage
                                 localStorage.setItem("allNotes", JSON.stringify(notesArray));
                                 showToast("🗑️ Note deleted successfully!");
-                            
+                                
+                               // Close the modal if it's open
+                                noteModal.classList.add('hidden');
+
                                 setTimeout(() => {
                                 location.reload();
                                 }, 600); // Wait 1.2 seconds so the toast is visible
@@ -246,9 +275,10 @@
                 localStorage.removeItem("editNoteIndex");
                 window.location.href = "add_note.html";
             });
-                           //reset when user clears input
+            //reset when user clears input
             searchInput.addEventListener("input", () => {
                 if (searchInput.value.trim() === "") {
+                    const allCards = document.querySelectorAll('.note-card');
                     allCards.forEach((card) => card.classList.remove("hidden"));
                 }
             });
