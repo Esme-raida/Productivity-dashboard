@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task Manager</title>
+  <title>Tttask Manager</title>
   <link rel="stylesheet" href="./output.css" />
 </head>
-<body class="min-h-screen max-w-screen px-2 py-2 bg-gray-100">
+<body class="min-h-screen max-w-screen px-2 py-2">
         <!-- HEADER -->
    <header class="dashboard-header">
    <h1 class="text-3xl font-bold font-sans">🧠Task Manager</h1>
@@ -52,20 +52,20 @@
     <!-- TODAY'S TASKS -->
     <section id="today-tasks" class=" bg-gray-50 rounded-lg mb-3 mt-3 shadow-lg p-4 hover:cursor-pointer">
       <h2 class="text-2xl font-medium">Today</h2>
-      <ul class="" id="today-list">
+      <ul id="todayList">
       </ul>
     </section>
 
     <section id="tomorrow-tasks" class="bg-gray-50 mb-3 rounded-lg shadow-lg p-4 hover:cursor-pointer">
       <h2 class="text-2xl font-medium">Tomorrow</h2>
-      <ul class="" id="tomorrow-list">
+      <ul id="tomorrowList">
       </ul>
     </section>
 
     <!-- UPCOMING TASKS -->
     <section id="upcoming-tasks" class="bg-gray-50 mb-3 rounded-lg shadow-lg p-4 hover:cursor-pointer">
       <h2 class="text-2xl font-medium">Upcoming</h2>
-      <ul class="" id="upcoming-list">
+      <ul id="upcomingList">
         <!-- Tasks added dynamically -->
       </ul>
     </section>
@@ -73,7 +73,7 @@
     <!-- COMPLETED TASKS -->
     <section id="completed-tasks" class="bg-gray-100 mb-2 rounded-lg shadow-lg p-4 hover:cursor-pointer">
       <h2 class="text-2xl font-medium">Completed</h2>
-      <ul class="task-list" id="completed-list">
+      <ul id="completedList">
         <!-- Completed tasks added dynamically -->
       </ul>
     </section>
@@ -94,396 +94,284 @@
       </form>
       </div>
   <script>
-    //----------------------------------------------------------DOM ELEMENT-------------------------------------------------------//
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener('DOMContentLoaded', () => {
       const backBtn = document.getElementById('backBtn');
-      const floatingActionButton = document.getElementById('fabButton');
+      const fabButton = document.getElementById('fabButton');
       const taskAction = document.getElementById('taskAction');
       const addButton = document.getElementById('addButton');
+      const deleteButton = document.getElementById('deleteButton');
+      const editButton = document.getElementById('editButton');
       const bottomSheet = document.getElementById('bottomSheet');
       const taskForm = document.getElementById('taskForm');
       const taskTitle = taskForm['task-title'];
       const taskDate = taskForm['task-date'];
+      const priority = taskForm['task-priority'];
       const cancelButton = document.getElementById('cancelButton');
-      const deleteButton = document.getElementById('deleteButton');
-      const editButton = document.getElementById('editButton');
-      const todayList = document.getElementById('today-list');
-      const tomorrowList = document.getElementById('tomorrow-list');
-      const upcomingList = document.getElementById('upcoming-list');
-      const completedList = document.getElementById('completed-list');
-
-      let todayTasks = [];
-      let tomorrowTasks = [];
-      let upcomingTasks = [];
-      let completedTasks = [];
-      let selectedTaskElement = null;
+      const todayList = document.getElementById('todayList');
+      const tomorrowList = document.getElementById('tomorrowList');
+      const upcomingList = document.getElementById('upcomingList'); 
+      const completedList = document.getElementById ('completedList');
+      let allTasks = [];
+      let selectedTask = null;
       let selectedTaskData = null;
-      let draggedElement = null;
+     
 
-      //----------------------------------------------------------BACK BUTTON FUNCTONALITY----------------------------------//
-      backBtn.addEventListener('click', () => {
-        window.location.href = 'dashboard.html';
-      });
-
-      //-----------------------------------------FLOATING ACTION BUTTON FUNCTIONALITY------------------------------------------------//
-      // When FAB button is clicked - toggle dropdown and prevent event bubbling
-      floatingActionButton.addEventListener('click', (event) => {
-        // Stop event from bubbling up to document to prevent immediate closing
-        event.stopPropagation();  // Prevent immediate closing
-        // Toggle the dropdown visibility
-        taskAction.classList.toggle('hidden');
-        floatingActionButton.classList.toggle('scale-110');
-        //Toggle svg color
-        const svg = floatingActionButton.querySelector('svg');
-        if (svg) svg.classList.toggle('text-gray-500'); // Toggle color
-      });
-      
-      // Close dropdown when clicking outside of it
-      document.addEventListener('click', (event) => {
-        const clickedOnFab = floatingActionButton.contains(event.target);
-        const clickedInDropdown = taskAction.contains(event.target);
-
-        if (!clickedOnFab && !clickedInDropdown) {
-          taskAction.classList.add('hidden');
-          floatingActionButton.classList.remove('scale-110');
-          const svg = floatingActionButton.querySelector('svg');
-          if (svg) svg.classList.remove('text-gray-500');
-        }
-      });
-
-      //-----------------------------------------------WHEN ADD BUTTON IS CLICKED-------------------------------------------------------//
-      addButton.addEventListener('click', () => {
-        taskAction.classList.add('hidden');
-        bottomSheet.classList.toggle('hidden'); //Show the adding block/taskform
-        taskForm.reset();
-      });
-      
-       //-----------------------------------------------WHEN CANCEL BUTTON IS CLICKED-------------------------------------------------------//
-      cancelButton.addEventListener('click', () => {
-        bottomSheet.classList.add('hidden');
-        taskForm.reset();
-        selectedTaskElement = null;
-        selectedTaskData = null;
-      });
-
-      //-------------------------------------FUNCTION TO UPDATE TASK IN LOCAL STORAGE----------------------------------------------------//
+      //-----------------------------------------------FUNCTION TO UPDATE LOCAL STORAGE--------------------------------------------------//
       function updateTasksInLocalStorage() {
-        localStorage.setItem("todayTasks", JSON.stringify(todayTasks));
-        localStorage.setItem("tomorrowTasks", JSON.stringify(tomorrowTasks));
-        localStorage.setItem("upcomingTasks", JSON.stringify(upcomingTasks));
-        localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+        localStorage.setItem("allTasks", JSON.stringify(allTasks));
       }
       
-      // -------------------------------------------- CREATE TASK ELEMENT FUNCTION -----------------------------------------------//
+      //------------------------------------------------GETTING ITEMS BACK ON PAGE LOAD-------------------------------------------------//
+      function loadTasksFromStorage() {
+        try {
+          todayList.innerHTML = '';
+          tomorrowList.innerHTML = '';
+          upcomingList.innerHTML = '';
+          completedList.innerHTML = '';
+
+          allTasks = JSON.parse(localStorage.getItem("allTasks")) || [];
+          //I'll start with sorting by priority since I can't do that after retriving from localStorage
+          const sortByPriority = (a, b) => {
+            //Negative number means put the first before the secon
+            //Positive means the second before the first
+            //0 means leave them as they are 
+            //If a is high-priority And b is NOT high-priority then a should come first
+            if (a.priority === true && b.priority !== true) return -1
+            if (a.priority !== true && b.priority == true) return 1;
+            return 0
+          } 
+          //CREATING AND COMPARING DATES NOW
+          const todayDate = new Date();
+          const todayDateOnly = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+         
+          const tomorrowDateOnly = new Date (todayDateOnly) // a copy of today date
+          tomorrowDateOnly.setDate(tomorrowDateOnly.getDate() + 1);
+         
+          //Overdue
+          const now = new Date()
+          const yesterdayDate = new Date(now);
+          yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+          
+          allTasks.sort(sortByPriority)
+          
+          allTasks.forEach(task => {
+             const taskDateFull = new Date(task.date);
+             const taskDateOnly = new Date(taskDateFull.getFullYear(), taskDateFull.getMonth(), taskDateFull.getDate());
+
+         
+            if (task.done) {
+              createTaskElement(task, completedList)
+              } else if(taskDateOnly.getTime() === todayDateOnly.getTime()) {
+                createTaskElement(task, todayList);
+              } else if (taskDateOnly.getTime() === tomorrowDateOnly.getTime()) {
+                createTaskElement(task, tomorrowList);
+              } else if (taskDateOnly.getTime() > tomorrowDateOnly.getTime()) {
+                createTaskElement(task, upcomingList);
+              } else if (taskDateOnly.getTime() < todayDateOnly.getTime()) {
+                task.overdue = true;
+                createTaskElement(task, todayList);
+              }
+        });
+
+        } catch{
+          allTasks = [];
+        }
+      }
+      //-----------------------------------------------BACK BUTTON FUNCTIONALITY------------------------------------------------------//
+      backBtn.addEventListener('click', () => {
+          window.location.href = 'dashboard.html';
+      });
+      
+      //---------------------------------------------------FAB BUTTON FUNCTIONALITY----------------------------------------------//
+      fabButton.addEventListener('click', () => {
+          const svg = fabButton.querySelector('svg'); // to get the svg of this fab button
+          svg.classList.toggle('scale-110', 'text-gray-400'); //adding visual styling to that svg when clicked
+          taskAction.classList.toggle('hidden'); 
+      });
+      
+      //functionality to check if anywhere outside the taskAction or the task button was clicked
+      document.addEventListener('click', (event) => {
+          const clickedOnFab = fabButton.contains(event.target);
+          const clickedInDropdown = taskAction.contains(event.target); 
+          
+          if (clickedOnFab !== true && clickedInDropdown !== true) {
+              taskAction.classList.add('hidden');
+          }
+      });
+      
+      //------------------------------------------------ADD BUTTON FUNCTIONALITY----------------------------------------------------------//
+      addButton.addEventListener('click', () => {
+          bottomSheet.classList.remove('hidden');
+      });
+
+      //------------------------------------------------------TASK FORM FUNCTIONALITY------------------------------------------------------//
+      taskForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          //CREATING THE TASK OBJECT
+          const task = {
+              title : taskTitle.value,
+              date : taskDate.value,
+              priority : priority.checked || false,
+              done: false 
+          }
+          allTasks.push(task);
+          updateTasksInLocalStorage();
+          loadTasksFromStorage();
+
+         
+          taskForm.reset()
+          bottomSheet.classList.add('hidden');
+      });
+      //---------------------------------------------------------CREATE ELEMENT FUNCTIONALITY---------------------------------//
       function createTaskElement(task, targetList) {
+
+        //----------------------------------------------CREATION OF THE ELEMENTS---------------------------------//
+        
+        //CREATING A LIST FOR EACH TASK ADDED
         const taskElement = document.createElement('li');
-        const wrapper = document.createElement('div'); // wraps the checkbox + text
-        wrapper.classList.add('flex', 'items-center', 'gap-2');
+        //A wrapper to house all the oitems and be appended as one to the list
+        const wrapper = document.createElement('div');
+        //The priority Label creation
         const priorityLabel = document.createElement('span');
-        
-        // Real Hidden Checkbox
+        //styling the wrapper
+        wrapper.classList.add('flex', 'gap-2', 'mt-2', 'mb-2', 'items-center');
+
+        //The text div
+        const taskText = document.createElement('span');
+        taskText.classList.add('task-title','text-black','ml-1');
+        taskText.textContent = task.title;
+        //creating a checkbox for usage, but hiding it to use an svg, but i'll be making use of that same functionality
         const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
+        checkbox.type = "checkbox";
         checkbox.classList.add('hidden');
-        checkbox.checked = task.done || false; // Keep state from localStorage
-        
-        // Creating SVG Checkbox UI here
+        checkbox.checked = task.done || false;
+
+        //The custom svg checkbox, check if it was checked on page load, if yes create the latter else create the first 
         const customCheckbox = document.createElement('span');
         customCheckbox.classList.add('cursor-pointer');
         customCheckbox.innerHTML = checkbox.checked
-          ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="#D1D5DB" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="12" fill="#D1D5DB"/>
-              <path d="M16.5 9L10.5 15L7.5 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>`
-          : `<div class="w-6 h-6 rounded-full border-2 border-gray-400"></div>`;
-        
-        // Task Text
-        const taskText = document.createElement('span');
-        taskText.textContent = task.title;
-        taskText.setAttribute('title', task.title);
-        taskText.classList.add('task-title', 'ml-1');
-        
-         //If the task is of high priority
-        if (task.priority) {
-          priorityLabel.textContent = "High Priority";
-          priorityLabel.classList.add('bg-red-500', 'text-white', 'text-xs', 'px-2', 'py-1', 'rounded-full', 'ml-10', 'flex-end');
-        }
-        
-         //Apply visual styling immediately page loads if task is already done then
-        if (task.done) {
-          taskText.classList.add('line-through', 'text-gray-400', 'italic');
-        }
-        
-         //functionality for when task is overdue
-        if (task.overdue && !task.done) {
-          taskText.classList.add('text-red-500', 'italic');
-          const overdueBadge = document.createElement('span');
-          overdueBadge.textContent = "Overdue";
-          overdueBadge.classList.add('ml-2', 'text-xs', 'bg-red-200', 'text-red-700', 'px-2', 'py-0.5', 'rounded-full');
-          wrapper.appendChild(overdueBadge);
-        }
-        
-        // Toggle Logic: Click on checkbox icon
-        customCheckbox.addEventListener('click', (event) => {
-          event.stopPropagation();
-          checkbox.checked = !checkbox.checked; //flips the checked status
-          task.done = checkbox.checked; //updates the task.done with that boolean
-
-          // Update icon/checkbox
-          customCheckbox.innerHTML = checkbox.checked //is it checked, if it is
             ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="#D1D5DB" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="12" fill="#D1D5DB"/>
                 <path d="M16.5 9L10.5 15L7.5 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>`
             : `<div class="w-6 h-6 rounded-full border-2 border-gray-400"></div>`;
-          
-          // Remove it from wherever it is first
-          taskElement.remove();
+        
+        //Priority text
+        if (task.priority) {
+          priorityLabel.textContent = "High Priority";
+          priorityLabel.classList.add('bg-red-500', 'text-white', 'text-xs', 'px-2', 'py-1', 'rounded-full', 'ml-1', 'flex-end');
+        }
 
-          if (task.done) { //if true
-             //Add strikethrough //Make the text-gray 
-            taskText.classList.add('line-through', 'text-gray-400', 'italic');
-            completedList.appendChild(taskElement);
-            completedTasks.push(task);
+        //On page load
+        if (task.done) {
+          taskText.classList.add('line-through', 'text-gray-400', 'italic');
+        }
+        
+        if (!task.done && task.overdue) {
+          const overdueBadge = document.createElement('span');
+          overdueBadge.textContent = "Overdue";
+          overdueBadge.classList.add('rounded-full', 'bg-red-200', 'text-red-700', 'text-xs', 'px-2', 'py-0.5');
+          wrapper.append(overdueBadge);
+        }  
+      //-------------------------------------------PROPERLY APPENDING CREATED ELEMENTS NOW-----------------------------------------//
+        customCheckbox.addEventListener('click', () => {
+          checkbox.checked = !checkbox.checked;
+          task.done = checkbox.checked;
 
-                      //Remove that task from any of the tasks array it is in
-          //.filter goes through all the items in the array and keeps only the item that returns true for the condition stated,
-          //but we flipped it, so it will keep only the item that does not match
-            todayTasks = todayTasks.filter(t => !(t.title === task.title && t.date === task.date));
-            tomorrowTasks = tomorrowTasks.filter(t => !(t.title === task.title && t.date === task.date));
-            upcomingTasks = upcomingTasks.filter(t => !(t.title === task.title && t.date === task.date));
-            //I used .filter because it returns array
-          } else {
-            //Remove strikethrough  //Remove the gray-text 
-            taskText.classList.remove('line-through', 'text-gray-400', 'italic');
-            //Remove from completed Task
-            completedTasks = completedTasks.filter(t => !(t.title === task.title && t.date === task.date));
-           
-            //Reset all times (hour/min/sec) to midnight (00:00).
-            const taskDateObj = new Date(task.date);
-            const taskDateOnly = new Date(taskDateObj.getFullYear(), taskDateObj.getMonth(), taskDateObj.getDate());
-            const now = new Date();
-            const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const tomorrowOnly = new Date(todayOnly);
-            tomorrowOnly.setDate(todayOnly.getDate() + 1);
-
-            if (taskDateOnly.getTime() < todayOnly.getTime()) {
-              taskText.classList.add('text-red-500', 'italic');
-              const overdueBadge = document.createElement('span');
-              overdueBadge.textContent = "Overdue";
-              overdueBadge.classList.add('ml-2', 'text-xs', 'bg-red-200', 'text-red-700', 'px-2', 'py-0.5', 'rounded-full');
-              wrapper.appendChild(overdueBadge);
-              todayList.appendChild(taskElement);
-              todayTasks.push(task);
-            } else if (taskDateOnly.getTime() === todayOnly.getTime()) {
-              todayList.appendChild(taskElement);
-              todayTasks.push(task);
-            } else if (taskDateOnly.getTime() === tomorrowOnly.getTime()) {
-              tomorrowList.appendChild(taskElement);
-              tomorrowTasks.push(task);
-            } else {
-              upcomingList.appendChild(taskElement);
-              upcomingTasks.push(task);
-            }
+          customCheckbox.innerHTML = checkbox.checked //is it checked, if it is
+              ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="#D1D5DB" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="12" fill="#D1D5DB"/>
+                  <path d="M16.5 9L10.5 15L7.5 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`
+              : `<div class="w-6 h-6 rounded-full border-2 border-gray-400"></div>`;
+            
+          taskElement.remove(); //removes it automatically from whtever list it is in
+          const index = allTasks.findIndex(t => t.title === task.title && t.date === task.date);
+          if (index !== -1) {
+           allTasks[index].done = checkbox.checked;
           }
 
+          //-------------------IF TASK IS DONE, WHICH WE JUST FLIPPED ABOVE, BUT WE CHECK TO BE SURE------------//
+          if(task.done) {
+            taskText.classList.add('text-gray-500', 'line-through', 'italic');
+          } else {
+            taskText.classList.remove('text-gray-500', 'line-through', 'italic');
+          }    
           updateTasksInLocalStorage();
+          loadTasksFromStorage();
         });
-        //----------------FUNCTION TO UPDATE TASK SELECTION LOGIC--------------------//
-        taskElement.addEventListener('click', (event) => {
-          //Find all tasks with the class 'selected-task'
-          if (event.target === customCheckbox || customCheckbox.contains(event.target)) return;
-          document.querySelectorAll('li.selected-task').forEach(task => {
-            //Loop through and remove selection style from all of them
-            task.classList.remove('selected-task', 'bg-blue-100', 'border', 'rounded-md', 'border-blue-500');
-          });
-          //Add classes to this clicked task to mark it as selected
-          taskElement.classList.add('selected-task', 'bg-blue-100', 'border', 'rounded-md', 'border-blue-500');
-          //this is to store the selected task element globally
-          selectedTaskElement = taskElement;
-          // this is to store the actual task data (title, date, etc.)
-          selectedTaskData = task;
-        });
-        
-        // Combine all elements
-        wrapper.appendChild(checkbox);
-        wrapper.appendChild(customCheckbox);
-        wrapper.appendChild(taskText);
-        wrapper.appendChild(priorityLabel);
-        taskElement.appendChild(wrapper);
-        taskElement.classList.add('mt-2');
 
-        //Add the task to the section in the UI
+        //--------------------------------------------------------------SELECTION LOGIC----------------------------------------//
+        taskElement.addEventListener('click', (event) => {
+          //prevents the code from running if the user clicked the checkbox
+          if (event.target.closest('.cursor-pointer')) return;
+          //if element is selected...
+          selectedTask = taskElement;
+          selectedTaskData = task;
+          localStorage.setItem("selectedTaskData", JSON.stringify(selectedTaskData));
+          //Remove tsyling from any previously selected element
+          document.querySelectorAll('li.selected-task').forEach(task => {
+            task.classList.remove('selected-task', 'bg-blue-100', 'border', 'rounded-md', 'border-blue-500' )
+          })
+          taskElement.classList.add('selected-task', 'bg-blue-100', 'border', 'rounded-md', 'border-blue-500')
+        });
+        //-------------------------ADDING EVERYTHING NOW TO THE LIST FOR EACH TASK ELEMENT-------------------------------//
+        wrapper.appendChild(customCheckbox);
+        wrapper.appendChild(checkbox);
+        wrapper.appendChild(taskText);
+        wrapper.append(priorityLabel)
+        taskElement.appendChild(wrapper);
         targetList.appendChild(taskElement);
       }
 
-      //--------------------------------------ADD TASK TO STORAGE AND DISPLAY--------------------------------------------------//
+      //---------------------------------------------------EDIT BUTTON------------------------------------------------//
+      editButton.addEventListener('click', () => {
+        if (!selectedTaskData || !selectedTask) {
+                  alert("Please select a task to edit.");
+                  return;
+                }
+                //Show the form if task selected.
+                bottomSheet.classList.remove('hidden');
+                // Fill form with task data all over again
+                taskTitle.value = selectedTaskData.title;
+                taskDate.value = selectedTaskData.date;
+                priority.checked = selectedTaskData.priority;
 
-      taskForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        bottomSheet.classList.add('hidden');
+                // Remove the original task visually and from array for now
+                selectedTask.remove();
+                allTasks = allTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
+                updateTasksInLocalStorage();
+                loadTasksFromStorage();
 
-        const taskTitleInput = taskTitle.value;
-        const taskDateInput = taskDate.value;
-        const isChecked = taskForm.elements.checkbox.checked; //returns true or false
-
-        if (taskTitleInput && taskDateInput) {
-          const taskDateObj = new Date(taskDateInput);
-          const taskDateOnly = new Date(taskDateObj.getFullYear(), taskDateObj.getMonth(), taskDateObj.getDate());
-
-          const today = new Date();
-          const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-          const tomorrowDate = new Date(todayDate);
-          tomorrowDate.setDate(tomorrowDate.getDate() + 1); // adds 1 day
+                // Clear selected state
+                selectedTask = null;
+                selectedTaskData = null;
+              });
       
-         //-----------------------------------------------TASK OBJECT CREATED--------------------------------------//
-          //Task object to be added to local storage representing a single task
-          const task = {
-            title: taskTitleInput,
-            date: taskDateInput,
-            done: false, // Whether the task is completed
-            priority: isChecked // reflects the checkbox state
-          };
-
-          if (taskDateOnly.getTime() === todayDate.getTime()) {
-            createTaskElement(task, todayList); // display today lists
-            todayTasks.push(task); // save to the todaytasks array
-            localStorage.setItem("todayTasks", JSON.stringify(todayTasks));
-          } else if (taskDateOnly.getTime() === tomorrowDate.getTime()) {
-            createTaskElement(task, tomorrowList);
-            tomorrowTasks.push(task);
-            localStorage.setItem("tomorrowTasks", JSON.stringify(tomorrowTasks));
-          } else if (taskDateOnly.getTime() > tomorrowDate.getTime()) {
-            createTaskElement(task, upcomingList);
-            upcomingTasks.push(task);
-            localStorage.setItem("upcomingTasks", JSON.stringify(upcomingTasks));
-          }
-
-          // Clear input fields after adding
-          taskTitle.value = '';
-          taskDate.value = '';
-          taskForm.elements.checkbox.checked = false;
-        }
-      });
-    
-          //-------------------------------------------------------DELETE BUTTON-----------------------------------------//
+      ///--------------------------------------------------DELETE BUTTON------------------------------------------//
       deleteButton.addEventListener('click', () => {
-        if (!selectedTaskElement || !selectedTaskData) {
+        if (!selectedTask || !selectedTaskData) {
           alert("Please select a task to delete.");
           return;
         }
         //Remove from wherever it is 
-        selectedTaskElement.remove();
+        selectedTask.remove();
 
         //Remove from the correct array
         const title = selectedTaskData.title;
         const date = selectedTaskData.date;
 
-        // Filter it out of every array it might be in
-        todayTasks = todayTasks.filter(task => !(task.title === title && task.date === date));
-        tomorrowTasks = tomorrowTasks.filter(task => !(task.title === title && task.date === date));
-        upcomingTasks = upcomingTasks.filter(task => !(task.title === title && task.date === date));
-        completedTasks = completedTasks.filter(task => !(task.title === title && task.date === date));
-
-        //Update Storage
+        allTasks = allTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
         updateTasksInLocalStorage();
+        loadTasksFromStorage();
+
 
         //clear selected task
-        selectedTaskElement = null;
+        selectedTask = null;
         selectedTaskData = null;
-      });
-      //-----------------------------------------------------EDIT TASKS BUTTON-------------------------------------------------------//
-      editButton.addEventListener('click', () => {
-        if (!selectedTaskData || !selectedTaskElement) {
-          alert("Please select a task to edit.");
-          return;
-        }
-        //Show the form if task selected.
-        bottomSheet.classList.remove('hidden');
-        // Fill form with task data all over again
-        taskTitle.value = selectedTaskData.title;
-        taskDate.value = selectedTaskData.date;
-        taskForm.elements.checkbox.checked = selectedTaskData.priority;
-
-        // Remove the original task visually and from array for now
-        selectedTaskElement.remove();
-        todayTasks = todayTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
-        tomorrowTasks = tomorrowTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
-        upcomingTasks = upcomingTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
-        completedTasks = completedTasks.filter(task => !(task.title === selectedTaskData.title && task.date === selectedTaskData.date));
-
-        updateTasksInLocalStorage();
-
-        // Clear selected state
-        selectedTaskElement = null;
-        selectedTaskData = null;
-      });
-
-    //-----------------------------function to load from localStorage---------------------------------//
-
-      function loadTasksFromStorage() {
-        try {
-          let allTasks = [
-            ...(JSON.parse(localStorage.getItem("todayTasks")) || []),
-            ...(JSON.parse(localStorage.getItem("tomorrowTasks")) || []),
-            ...(JSON.parse(localStorage.getItem("upcomingTasks")) || []),
-            ...(JSON.parse(localStorage.getItem("completedTasks")) || [])
-          ];
-
-          todayTasks = [];
-          tomorrowTasks = [];
-          upcomingTasks = [];
-          completedTasks = [];
-
-          const now = new Date();
-          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          const tomorrow = new Date(today);
-          tomorrow.setDate(tomorrow.getDate() + 1);
-
-          const sortByPriority = (a, b) => {
-            if (a.priority === true && b.priority !== true) return -1;
-            if (a.priority !== true && b.priority === true) return 1;
-            return 0;
-          };
-
-          allTasks.forEach(task => {
-            const taskDate = new Date(task.date);
-            const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
-
-            if (task.done) {
-              completedTasks.push(task);
-              createTaskElement(task, completedList);
-            } else if (taskDay.getTime() === today.getTime()) {
-              todayTasks.push(task);
-              createTaskElement(task, todayList);
-            } else if (taskDay.getTime() === tomorrow.getTime()) {
-              tomorrowTasks.push(task);
-              createTaskElement(task, tomorrowList);
-            } else if (taskDay.getTime() > tomorrow.getTime()) {
-              upcomingTasks.push(task);
-              createTaskElement(task, upcomingList);
-            } else {
-              todayTasks.push({ ...task, overdue: true });
-              createTaskElement({ ...task, overdue: true }, todayList);
-            }
-          });
-
-          todayTasks.sort(sortByPriority);
-          tomorrowTasks.sort(sortByPriority);
-          upcomingTasks.sort(sortByPriority);
-
-          updateTasksInLocalStorage();
-        } catch {
-          todayTasks = [];
-          tomorrowTasks = [];
-          upcomingTasks = [];
-          completedTasks = [];
-        }
-      }
-
+      });        
       loadTasksFromStorage();
     });
-
   </script>
 </body>
 </html>
